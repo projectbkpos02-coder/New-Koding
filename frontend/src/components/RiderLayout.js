@@ -28,11 +28,22 @@ export default function RiderLayout({ children }) {
 
   const getActiveColor = (color) => {
     const colors = {
-      primary: 'text-blue-600 bg-blue-50',
-      secondary: 'text-green-600 bg-green-50',
-      accent: 'text-orange-500 bg-orange-50',
-      purple: 'text-purple-600 bg-purple-50',
-      default: 'text-blue-600 bg-blue-50',
+      primary: 'text-primary bg-primary/10',
+      secondary: 'text-secondary bg-secondary/10',
+      accent: 'text-accent bg-accent/10',
+      purple: 'text-[hsl(270,70%,60%)] bg-[hsl(270,70%,60%)]/10',
+      default: 'text-primary bg-primary/10',
+    };
+    return colors[color] || colors.default;
+  };
+
+  const getGlowColor = (color) => {
+    const colors = {
+      primary: 'bg-primary/30',
+      secondary: 'bg-secondary/30',
+      accent: 'bg-accent/30',
+      purple: 'bg-[hsl(270,70%,60%)]/30',
+      default: 'bg-primary/30',
     };
     return colors[color] || colors.default;
   };
@@ -40,23 +51,23 @@ export default function RiderLayout({ children }) {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Top Header */}
-      <header className="sticky top-0 z-40 glass border-b border-gray-200/50 dark:border-gray-700/50">
+      <header className="sticky top-0 z-40 glass border-b border-border/50">
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
+            <div className="w-9 h-9 bg-gradient-secondary rounded-xl flex items-center justify-center shadow-glow-secondary">
               <Package className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="font-bold text-gray-900 dark:text-white">POS Rider</span>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Rider Mode</p>
+              <span className="font-bold text-foreground">POS Rider</span>
+              <p className="text-xs text-muted-foreground">Rider Mode</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.full_name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Rider</p>
+              <p className="text-sm font-medium text-foreground">{user?.full_name}</p>
+              <p className="text-xs text-muted-foreground">Rider</p>
             </div>
             <div className="w-9 h-9 bg-gradient-secondary rounded-full flex items-center justify-center shadow-md">
               {user?.avatar_url ? (
@@ -73,15 +84,15 @@ export default function RiderLayout({ children }) {
 
       {/* Page content */}
       <main className="pb-nav-safe">
-        <div className="p-4 max-w-lg mx-auto animate-fade-in">
+        <div className="p-4 max-w-lg mx-auto">
           {children}
         </div>
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 glass border-t border-gray-200/50 dark:border-gray-700/50 shadow-xl">
-        {/* Decorative top border */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-50" />
+      <nav className="fixed bottom-0 left-0 right-0 z-40 glass border-t border-border/50 shadow-xl backdrop-blur-xl">
+        {/* Decorative top border with gradient */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-secondary to-transparent opacity-50" />
         
         <div 
           className="flex items-center justify-evenly h-16 max-w-screen-xl mx-auto"
@@ -98,37 +109,45 @@ export default function RiderLayout({ children }) {
                   "hover:scale-105 active:scale-95"
                 )}
               >
+                {/* Active indicator - floating dot */}
                 {active && (
-                  <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-green-500 animate-bounce-in" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-current animate-bounce-in" />
                 )}
+
+                {/* Icon container with background */}
                 <div className={cn(
                   "relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300",
                   active 
                     ? cn(getActiveColor(item.color), "shadow-md scale-110") 
-                    : "text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-gray-800 group-hover:text-gray-600"
+                    : "text-muted-foreground group-hover:bg-muted/50 group-hover:text-foreground"
                 )}>
+                  {/* Glow effect on active */}
                   {active && (
                     <div className={cn(
                       "absolute inset-0 rounded-xl blur-sm opacity-50 animate-pulse-slow",
-                      item.color === 'primary' && "bg-blue-500/30",
-                      item.color === 'secondary' && "bg-green-500/30",
-                      item.color === 'accent' && "bg-orange-500/30",
-                      item.color === 'purple' && "bg-purple-500/30"
+                      getGlowColor(item.color)
                     )} />
                   )}
+                  
                   <item.icon className={cn(
                     "w-5 h-5 relative z-10 transition-transform duration-300",
                     active && "animate-scale-in"
                   )} />
                 </div>
+
+                {/* Label */}
                 <span className={cn(
                   "text-[0.65rem] sm:text-xs font-semibold text-center leading-tight truncate max-w-full transition-all duration-300",
-                  active ? "text-gray-900 dark:text-white" : "text-gray-400 group-hover:text-gray-600"
+                  active 
+                    ? "text-foreground" 
+                    : "text-muted-foreground group-hover:text-foreground"
                 )}>
                   {item.name}
                 </span>
+
+                {/* Bottom active indicator */}
                 {active && (
-                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-green-500 rounded-full animate-fade-in" />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-current rounded-full animate-fade-in-up" />
                 )}
               </Link>
             );
@@ -139,10 +158,10 @@ export default function RiderLayout({ children }) {
             onClick={logout}
             className="group relative flex flex-col items-center justify-center flex-1 h-full min-w-[4rem] max-w-[6rem] px-2 space-y-1 transition-all duration-300 hover:scale-105 active:scale-95"
           >
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl text-red-400 group-hover:bg-red-50 dark:group-hover:bg-red-900/30 group-hover:text-red-500 transition-all duration-300">
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl text-destructive/70 group-hover:bg-destructive/10 group-hover:text-destructive transition-all duration-300">
               <LogOut className="w-5 h-5 relative z-10" />
             </div>
-            <span className="text-[0.65rem] sm:text-xs font-semibold text-center leading-tight text-red-400 group-hover:text-red-500">
+            <span className="text-[0.65rem] sm:text-xs font-semibold text-center leading-tight text-destructive/70 group-hover:text-destructive transition-colors">
               Keluar
             </span>
           </button>
