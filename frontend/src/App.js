@@ -1,53 +1,134 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+// Pages
+import Login from './pages/Login';
+import Register from './pages/Register';
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+// Admin Pages
+import AdminDashboard from './pages/admin/Dashboard';
+import Products from './pages/admin/Products';
+import Production from './pages/admin/Production';
+import Distribution from './pages/admin/Distribution';
+import StockOpname from './pages/admin/StockOpname';
+import Returns from './pages/admin/Returns';
+import Rejects from './pages/admin/Rejects';
+import Reports from './pages/admin/Reports';
+import GPSTracking from './pages/admin/GPSTracking';
+import UserManagement from './pages/admin/UserManagement';
+
+// Rider Pages
+import RiderPOS from './pages/rider/POS';
+import RiderLeaderboard from './pages/rider/Leaderboard';
+import RiderReports from './pages/rider/Reports';
+import RiderSettings from './pages/rider/Settings';
+
+// Protected Route Component
+function ProtectedRoute({ children, requiredRole }) {
+  const { user, loading, isAdmin, isSuperAdmin, isRider } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Role-based access control
+  if (requiredRole === 'admin' && !isAdmin) {
+    return <Navigate to="/rider" replace />;
+  }
+
+  if (requiredRole === 'super_admin' && !isSuperAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  if (requiredRole === 'rider' && !isRider && !isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return children;
+}
+
+// Public Route (redirect if logged in)
+function PublicRoute({ children }) {
+  const { user, loading, isAdmin, isRider } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (user) {
+    if (isAdmin) {
+      return <Navigate to="/admin" replace />;
     }
-  };
+    return <Navigate to="/rider" replace />;
+  }
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  return children;
+}
+
+function AppRoutes() {
+  const { user, isAdmin, isRider } = useAuth();
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+
+      {/* Admin Routes */}
+      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/products" element={<ProtectedRoute requiredRole="admin"><Products /></ProtectedRoute>} />
+      <Route path="/admin/production" element={<ProtectedRoute requiredRole="admin"><Production /></ProtectedRoute>} />
+      <Route path="/admin/distribution" element={<ProtectedRoute requiredRole="admin"><Distribution /></ProtectedRoute>} />
+      <Route path="/admin/stock-opname" element={<ProtectedRoute requiredRole="admin"><StockOpname /></ProtectedRoute>} />
+      <Route path="/admin/returns" element={<ProtectedRoute requiredRole="admin"><Returns /></ProtectedRoute>} />
+      <Route path="/admin/rejects" element={<ProtectedRoute requiredRole="admin"><Rejects /></ProtectedRoute>} />
+      <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin"><Reports /></ProtectedRoute>} />
+      <Route path="/admin/gps" element={<ProtectedRoute requiredRole="admin"><GPSTracking /></ProtectedRoute>} />
+      <Route path="/admin/users" element={<ProtectedRoute requiredRole="super_admin"><UserManagement /></ProtectedRoute>} />
+
+      {/* Rider Routes */}
+      <Route path="/rider" element={<ProtectedRoute requiredRole="rider"><RiderPOS /></ProtectedRoute>} />
+      <Route path="/rider/leaderboard" element={<ProtectedRoute requiredRole="rider"><RiderLeaderboard /></ProtectedRoute>} />
+      <Route path="/rider/reports" element={<ProtectedRoute requiredRole="rider"><RiderReports /></ProtectedRoute>} />
+      <Route path="/rider/settings" element={<ProtectedRoute requiredRole="rider"><RiderSettings /></ProtectedRoute>} />
+
+      {/* Default Route */}
+      <Route path="/" element={
+        user ? (
+          isAdmin ? <Navigate to="/admin" replace /> : <Navigate to="/rider" replace />
+        ) : (
+          <Navigate to="/login" replace />
+        )
+      } />
+
+      {/* 404 Route */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
-};
+}
 
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+    <Router>
+      <AuthProvider>
+        <div className="min-h-screen bg-gray-50">
+          <AppRoutes />
+        </div>
+      </AuthProvider>
+    </Router>
   );
 }
 
