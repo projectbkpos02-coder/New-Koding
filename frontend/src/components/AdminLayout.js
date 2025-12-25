@@ -32,6 +32,7 @@ const moreNavigation = [
   { name: 'Reject', href: '/admin/rejects', icon: AlertTriangle, color: 'destructive' },
   { name: 'Laporan', href: '/admin/reports', icon: BarChart3, color: 'purple' },
   { name: 'GPS', href: '/admin/gps', icon: MapPin, color: 'secondary' },
+  { name: 'Settings', href: '/admin/settings', icon: Settings, color: 'primary' },
 ];
 
 const superAdminNav = [
