@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { riderStockAPI, transactionsAPI } from '../../lib/api';
 import { formatCurrency } from '../../lib/utils';
 import { useAuth } from '../../contexts/AuthContext';
-import { ShoppingCart, Package, Plus, Minus, Loader2, Check, X, CreditCard, Banknote } from 'lucide-react';
+import { ShoppingCart, Package, Plus, Minus, Loader2, Check, X, CreditCard, Banknote, RefreshCw, Sparkles } from 'lucide-react';
 
 export default function RiderPOS() {
   const { user } = useAuth();
@@ -108,64 +108,85 @@ export default function RiderPOS() {
 
   return (
     <RiderLayout>
-      <div className="space-y-4">
+      <div className="space-y-4 animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">POS</h1>
-            <p className="text-sm text-gray-500">Point of Sale</p>
+            <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+              <ShoppingCart className="w-5 h-5 text-primary" />
+              POS
+            </h1>
+            <p className="text-sm text-muted-foreground">Point of Sale</p>
           </div>
-          {cartCount > 0 && (
-            <Button onClick={() => setDialogOpen(true)} className="relative">
-              <ShoppingCart className="w-5 h-5 mr-2" />
-              {formatCurrency(cartTotal)}
-              <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                {cartCount}
-              </span>
+          <div className="flex items-center gap-2">
+            <Button onClick={fetchStock} variant="outline" size="sm" disabled={loading} className="hover-lift">
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
-          )}
+            {cartCount > 0 && (
+              <Button onClick={() => setDialogOpen(true)} className="relative bg-gradient-primary hover:opacity-90 shadow-glow">
+                <ShoppingCart className="w-5 h-5 mr-2" />
+                {formatCurrency(cartTotal)}
+                <span className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-white text-xs rounded-full flex items-center justify-center animate-bounce-in shadow-md">
+                  {cartCount}
+                </span>
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Stock Info */}
-        <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-          Stok tersedia: {stock.length} produk | Total item: {stock.reduce((s, p) => s + p.quantity, 0)}
+        <div className="p-3 bg-primary/10 rounded-xl text-sm text-primary border border-primary/20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Package className="w-4 h-4" />
+            <span>Stok tersedia: <strong>{stock.length}</strong> produk</span>
+          </div>
+          <Badge variant="secondary" className="bg-secondary/20 text-secondary">
+            {stock.reduce((s, p) => s + p.quantity, 0)} item
+          </Badge>
         </div>
 
         {/* Products Grid */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <div className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Memuat stok...</p>
           </div>
         ) : stock.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Package className="w-12 h-12 text-gray-400 mb-4" />
-              <p className="text-gray-500">Tidak ada stok</p>
-              <p className="text-sm text-gray-400">Hubungi admin untuk distribusi produk</p>
+          <Card className="border-border/50">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <Package className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <p className="text-foreground font-medium">Tidak ada stok</p>
+              <p className="text-sm text-muted-foreground">Hubungi admin untuk distribusi produk</p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            {stock.map((item) => {
+            {stock.map((item, index) => {
               const inCart = cart[item.product_id]?.cartQty || 0;
               const availableQty = item.quantity - inCart;
               
               return (
-                <Card key={item.id} className="overflow-hidden">
-                  <div className="aspect-square bg-gray-100 flex items-center justify-center relative">
+                <Card 
+                  key={item.id} 
+                  className="overflow-hidden border-border/50 hover:shadow-md transition-all duration-300 animate-fade-in-up hover-lift"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="aspect-square bg-muted/50 flex items-center justify-center relative">
                     {item.products?.image_url ? (
                       <img src={item.products.image_url} alt={item.products?.name} className="w-full h-full object-cover" />
                     ) : (
-                      <Package className="w-10 h-10 text-gray-400" />
+                      <Package className="w-10 h-10 text-muted-foreground" />
                     )}
                     {inCart > 0 && (
-                      <Badge className="absolute top-2 right-2 bg-blue-600">{inCart} di keranjang</Badge>
+                      <Badge className="absolute top-2 right-2 bg-primary shadow-md animate-scale-in">{inCart} di keranjang</Badge>
                     )}
                   </div>
                   <CardContent className="p-3">
-                    <h3 className="font-medium text-sm truncate">{item.products?.name}</h3>
+                    <h3 className="font-medium text-sm truncate text-foreground">{item.products?.name}</h3>
                     <div className="flex items-center justify-between mt-1">
-                      <p className="text-blue-600 font-bold text-sm">
+                      <p className="text-primary font-bold text-sm">
                         {formatCurrency(item.products?.price || 0)}
                       </p>
                       <Badge variant={availableQty <= 5 ? 'destructive' : 'success'} className="text-xs">
@@ -178,15 +199,15 @@ export default function RiderPOS() {
                           <Button
                             size="icon"
                             variant="outline"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-lg"
                             onClick={() => removeFromCart(item.product_id)}
                           >
                             <Minus className="w-4 h-4" />
                           </Button>
-                          <span className="flex-1 text-center font-medium">{inCart}</span>
+                          <span className="flex-1 text-center font-bold text-foreground">{inCart}</span>
                           <Button
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-8 w-8 rounded-lg bg-gradient-primary hover:opacity-90"
                             onClick={() => addToCart(item)}
                             disabled={availableQty <= 0}
                           >
@@ -195,7 +216,7 @@ export default function RiderPOS() {
                         </>
                       ) : (
                         <Button
-                          className="w-full h-8"
+                          className="w-full h-8 rounded-lg bg-gradient-secondary hover:opacity-90"
                           onClick={() => addToCart(item)}
                           disabled={availableQty <= 0}
                         >
@@ -213,19 +234,20 @@ export default function RiderPOS() {
 
         {/* Checkout Dialog */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             {transactionSuccess ? (
               // Success View
-              <div className="text-center py-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Check className="w-8 h-8 text-green-600" />
+              <div className="text-center py-6 animate-fade-in">
+                <div className="w-20 h-20 bg-gradient-secondary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow-secondary animate-bounce-in">
+                  <Check className="w-10 h-10 text-white" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">Transaksi Berhasil!</h2>
-                <p className="text-3xl font-bold text-green-600 mb-4">
+                <h2 className="text-xl font-bold text-foreground mb-2">Transaksi Berhasil!</h2>
+                <p className="text-3xl font-bold text-secondary mb-2 animate-scale-in">
                   {formatCurrency(transactionSuccess.total)}
                 </p>
-                <p className="text-sm text-gray-500 mb-6">ID: {transactionSuccess.transaction_id.slice(0, 8)}</p>
-                <Button onClick={handleNewTransaction} className="w-full">
+                <p className="text-sm text-muted-foreground mb-6">ID: {transactionSuccess.transaction_id.slice(0, 8)}</p>
+                <Button onClick={handleNewTransaction} className="w-full bg-gradient-primary hover:opacity-90">
+                  <Sparkles className="w-4 h-4 mr-2" />
                   Transaksi Baru
                 </Button>
               </div>
@@ -233,36 +255,42 @@ export default function RiderPOS() {
               // Checkout View
               <>
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <ShoppingCart className="w-5 h-5" />
+                  <DialogTitle className="flex items-center gap-2 text-foreground">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
+                      <ShoppingCart className="w-4 h-4 text-white" />
+                    </div>
                     Keranjang Belanja
                   </DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-4">
                   {/* Cart Items */}
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {cartItems.map((item) => (
-                      <div key={item.product_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="space-y-2 max-h-60 overflow-y-auto scrollbar-hide">
+                    {cartItems.map((item, index) => (
+                      <div 
+                        key={item.product_id} 
+                        className="flex items-center justify-between p-3 bg-muted/50 rounded-xl animate-fade-in-up"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
                         <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 bg-white rounded flex items-center justify-center">
+                          <div className="w-10 h-10 bg-card rounded-lg flex items-center justify-center overflow-hidden">
                             {item.products?.image_url ? (
-                              <img src={item.products.image_url} alt={item.products?.name} className="w-full h-full object-cover rounded" />
+                              <img src={item.products.image_url} alt={item.products?.name} className="w-full h-full object-cover" />
                             ) : (
-                              <Package className="w-5 h-5 text-gray-400" />
+                              <Package className="w-5 h-5 text-muted-foreground" />
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-sm">{item.products?.name}</p>
-                            <p className="text-xs text-gray-500">{formatCurrency(item.products?.price || 0)} x {item.cartQty}</p>
+                            <p className="font-medium text-sm text-foreground">{item.products?.name}</p>
+                            <p className="text-xs text-muted-foreground">{formatCurrency(item.products?.price || 0)} x {item.cartQty}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{formatCurrency((item.products?.price || 0) * item.cartQty)}</span>
+                          <span className="font-medium text-foreground">{formatCurrency((item.products?.price || 0) * item.cartQty)}</span>
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-6 w-6 text-red-500"
+                            className="h-6 w-6 text-destructive hover:bg-destructive/10"
                             onClick={() => {
                               const newCart = { ...cart };
                               delete newCart[item.product_id];
@@ -278,11 +306,11 @@ export default function RiderPOS() {
 
                   {/* Payment Method */}
                   <div>
-                    <p className="text-sm font-medium mb-2">Metode Pembayaran:</p>
+                    <p className="text-sm font-medium mb-2 text-foreground">Metode Pembayaran:</p>
                     <div className="flex gap-2">
                       <Button
                         variant={paymentMethod === 'tunai' ? 'default' : 'outline'}
-                        className="flex-1"
+                        className={`flex-1 ${paymentMethod === 'tunai' ? 'bg-gradient-secondary hover:opacity-90' : ''}`}
                         onClick={() => setPaymentMethod('tunai')}
                       >
                         <Banknote className="w-4 h-4 mr-2" />
@@ -290,7 +318,7 @@ export default function RiderPOS() {
                       </Button>
                       <Button
                         variant={paymentMethod === 'transfer' ? 'default' : 'outline'}
-                        className="flex-1"
+                        className={`flex-1 ${paymentMethod === 'transfer' ? 'bg-gradient-primary hover:opacity-90' : ''}`}
                         onClick={() => setPaymentMethod('transfer')}
                       >
                         <CreditCard className="w-4 h-4 mr-2" />
@@ -300,16 +328,16 @@ export default function RiderPOS() {
                   </div>
 
                   {/* Total */}
-                  <div className="p-4 bg-blue-50 rounded-lg">
+                  <div className="p-4 bg-primary/10 rounded-xl border border-primary/20">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">Total</span>
-                      <span className="text-2xl font-bold text-blue-600">{formatCurrency(cartTotal)}</span>
+                      <span className="font-medium text-foreground">Total</span>
+                      <span className="text-2xl font-bold text-primary">{formatCurrency(cartTotal)}</span>
                     </div>
                   </div>
                 </div>
 
                 <DialogFooter className="flex-col gap-2">
-                  <Button onClick={handleCheckout} disabled={processing} className="w-full">
+                  <Button onClick={handleCheckout} disabled={processing} className="w-full bg-gradient-primary hover:opacity-90 shadow-glow">
                     {processing ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
