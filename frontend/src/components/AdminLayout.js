@@ -17,7 +17,6 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import { Button } from '../components/ui/Button';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, color: 'primary' },
@@ -28,14 +27,14 @@ const navigation = [
 ];
 
 const moreNavigation = [
-  { name: 'Return', href: '/admin/returns', icon: Undo2 },
-  { name: 'Reject', href: '/admin/rejects', icon: AlertTriangle },
-  { name: 'Laporan', href: '/admin/reports', icon: BarChart3 },
-  { name: 'GPS', href: '/admin/gps', icon: MapPin },
+  { name: 'Return', href: '/admin/returns', icon: Undo2, color: 'accent' },
+  { name: 'Reject', href: '/admin/rejects', icon: AlertTriangle, color: 'destructive' },
+  { name: 'Laporan', href: '/admin/reports', icon: BarChart3, color: 'purple' },
+  { name: 'GPS', href: '/admin/gps', icon: MapPin, color: 'secondary' },
 ];
 
 const superAdminNav = [
-  { name: 'Users', href: '/admin/users', icon: Users },
+  { name: 'Users', href: '/admin/users', icon: Users, color: 'primary' },
 ];
 
 export default function AdminLayout({ children }) {
@@ -47,11 +46,24 @@ export default function AdminLayout({ children }) {
 
   const getActiveColor = (color) => {
     const colors = {
-      primary: 'text-blue-600 bg-blue-50',
-      secondary: 'text-green-600 bg-green-50',
-      accent: 'text-orange-500 bg-orange-50',
-      purple: 'text-purple-600 bg-purple-50',
-      default: 'text-blue-600 bg-blue-50',
+      primary: 'text-primary bg-primary/10',
+      secondary: 'text-secondary bg-secondary/10',
+      accent: 'text-accent bg-accent/10',
+      purple: 'text-[hsl(270,70%,60%)] bg-[hsl(270,70%,60%)]/10',
+      destructive: 'text-destructive bg-destructive/10',
+      default: 'text-primary bg-primary/10',
+    };
+    return colors[color] || colors.default;
+  };
+
+  const getGlowColor = (color) => {
+    const colors = {
+      primary: 'bg-primary/30',
+      secondary: 'bg-secondary/30',
+      accent: 'bg-accent/30',
+      purple: 'bg-[hsl(270,70%,60%)]/30',
+      destructive: 'bg-destructive/30',
+      default: 'bg-primary/30',
     };
     return colors[color] || colors.default;
   };
@@ -60,23 +72,23 @@ export default function AdminLayout({ children }) {
   const isMoreActive = allMoreNav.some(item => location.pathname === item.href);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Top Header */}
-      <header className="sticky top-0 z-40 glass border-b border-gray-200/50 dark:border-gray-700/50">
+      <header className="sticky top-0 z-40 glass border-b border-border/50">
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
               <Package className="w-5 h-5 text-white" />
             </div>
             <div>
-              <span className="font-bold text-gray-900 dark:text-white">POS Rider</span>
-              <p className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">Admin Panel</p>
+              <span className="font-bold text-foreground">POS Rider</span>
+              <p className="text-xs text-muted-foreground hidden sm:block">Admin Panel</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.full_name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">{user?.role?.replace('_', ' ')}</p>
+              <p className="text-sm font-medium text-foreground">{user?.full_name}</p>
+              <p className="text-xs text-muted-foreground capitalize">{user?.role?.replace('_', ' ')}</p>
             </div>
             <div className="w-9 h-9 bg-gradient-primary rounded-full flex items-center justify-center shadow-md">
               <span className="text-white font-semibold text-sm">
@@ -89,29 +101,30 @@ export default function AdminLayout({ children }) {
 
       {/* More Menu Modal */}
       {moreOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => setMoreOpen(false)}>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setMoreOpen(false)}>
           <div 
-            className="absolute bottom-20 left-4 right-4 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-4 animate-slide-up"
+            className="absolute bottom-20 left-4 right-4 bg-card rounded-2xl shadow-xl p-4 animate-slide-up border border-border/50"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-900 dark:text-white">Menu Lainnya</h3>
-              <button onClick={() => setMoreOpen(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-                <X className="w-5 h-5" />
+              <h3 className="font-semibold text-foreground">Menu Lainnya</h3>
+              <button onClick={() => setMoreOpen(false)} className="p-1 hover:bg-muted rounded-lg transition-colors">
+                <X className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
-            <div className="grid grid-cols-4 gap-3">
-              {allMoreNav.map((item) => (
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+              {allMoreNav.map((item, index) => (
                 <Link
                   key={item.href}
                   to={item.href}
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex flex-col items-center gap-2 p-3 rounded-xl transition-all",
+                    "flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover-scale animate-fade-in-up",
                     isActive(item.href)
-                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                      ? getActiveColor(item.color)
+                      : "hover:bg-muted text-muted-foreground hover:text-foreground"
                   )}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <item.icon className="w-6 h-6" />
                   <span className="text-xs font-medium">{item.name}</span>
@@ -119,7 +132,8 @@ export default function AdminLayout({ children }) {
               ))}
               <button
                 onClick={() => { setMoreOpen(false); logout(); }}
-                className="flex flex-col items-center gap-2 p-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                className="flex flex-col items-center gap-2 p-3 rounded-xl text-destructive hover:bg-destructive/10 transition-all duration-300 hover-scale animate-fade-in-up"
+                style={{ animationDelay: `${allMoreNav.length * 50}ms` }}
               >
                 <LogOut className="w-6 h-6" />
                 <span className="text-xs font-medium">Keluar</span>
@@ -131,15 +145,15 @@ export default function AdminLayout({ children }) {
 
       {/* Page content */}
       <main className="pb-nav-safe">
-        <div className="p-4 max-w-7xl mx-auto animate-fade-in">
+        <div className="p-4 max-w-7xl mx-auto">
           {children}
         </div>
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 glass border-t border-gray-200/50 dark:border-gray-700/50 shadow-xl">
-        {/* Decorative top border */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50" />
+      <nav className="fixed bottom-0 left-0 right-0 z-40 glass border-t border-border/50 shadow-xl backdrop-blur-xl">
+        {/* Decorative top border with gradient */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary to-transparent opacity-50" />
         
         <div 
           className="flex items-center justify-evenly h-16 max-w-screen-xl mx-auto"
@@ -156,37 +170,45 @@ export default function AdminLayout({ children }) {
                   "hover:scale-105 active:scale-95"
                 )}
               >
+                {/* Active indicator - floating dot */}
                 {active && (
-                  <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-600 animate-bounce-in" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-current animate-bounce-in" />
                 )}
+
+                {/* Icon container with background */}
                 <div className={cn(
                   "relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300",
                   active 
                     ? cn(getActiveColor(item.color), "shadow-md scale-110") 
-                    : "text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-gray-800 group-hover:text-gray-600"
+                    : "text-muted-foreground group-hover:bg-muted/50 group-hover:text-foreground"
                 )}>
+                  {/* Glow effect on active */}
                   {active && (
                     <div className={cn(
                       "absolute inset-0 rounded-xl blur-sm opacity-50 animate-pulse-slow",
-                      item.color === 'primary' && "bg-blue-500/30",
-                      item.color === 'secondary' && "bg-green-500/30",
-                      item.color === 'accent' && "bg-orange-500/30",
-                      item.color === 'purple' && "bg-purple-500/30"
+                      getGlowColor(item.color)
                     )} />
                   )}
+                  
                   <item.icon className={cn(
                     "w-5 h-5 relative z-10 transition-transform duration-300",
                     active && "animate-scale-in"
                   )} />
                 </div>
+
+                {/* Label */}
                 <span className={cn(
                   "text-[0.6rem] sm:text-xs font-semibold text-center leading-tight truncate max-w-full transition-all duration-300",
-                  active ? "text-gray-900 dark:text-white" : "text-gray-400 group-hover:text-gray-600"
+                  active 
+                    ? "text-foreground" 
+                    : "text-muted-foreground group-hover:text-foreground"
                 )}>
                   {item.name}
                 </span>
+
+                {/* Bottom active indicator */}
                 {active && (
-                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-600 rounded-full animate-fade-in" />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-current rounded-full animate-fade-in-up" />
                 )}
               </Link>
             );
@@ -201,22 +223,28 @@ export default function AdminLayout({ children }) {
             )}
           >
             {isMoreActive && (
-              <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-600 animate-bounce-in" />
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary animate-bounce-in" />
             )}
             <div className={cn(
               "relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300",
               isMoreActive 
-                ? "bg-blue-50 text-blue-600 shadow-md scale-110" 
-                : "text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-gray-800 group-hover:text-gray-600"
+                ? "bg-primary/10 text-primary shadow-md scale-110" 
+                : "text-muted-foreground group-hover:bg-muted/50 group-hover:text-foreground"
             )}>
+              {isMoreActive && (
+                <div className="absolute inset-0 rounded-xl blur-sm opacity-50 animate-pulse-slow bg-primary/30" />
+              )}
               <Menu className="w-5 h-5 relative z-10" />
             </div>
             <span className={cn(
               "text-[0.6rem] sm:text-xs font-semibold text-center leading-tight truncate max-w-full transition-all duration-300",
-              isMoreActive ? "text-gray-900 dark:text-white" : "text-gray-400 group-hover:text-gray-600"
+              isMoreActive ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
             )}>
               Lainnya
             </span>
+            {isMoreActive && (
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full animate-fade-in-up" />
+            )}
           </button>
         </div>
       </nav>
