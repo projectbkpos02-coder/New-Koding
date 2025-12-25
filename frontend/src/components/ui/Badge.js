@@ -3,19 +3,19 @@ import { cn } from "../../lib/utils";
 
 const Badge = React.forwardRef(({ className, variant = "default", ...props }, ref) => {
   const variants = {
-    default: "bg-blue-100 text-blue-800",
-    secondary: "bg-gray-100 text-gray-800",
-    destructive: "bg-red-100 text-red-800",
-    success: "bg-green-100 text-green-800",
-    warning: "bg-yellow-100 text-yellow-800",
-    outline: "border border-gray-300 text-gray-700",
+    default: "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300",
+    secondary: "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300",
+    destructive: "bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300",
+    success: "bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300",
+    warning: "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300",
+    outline: "border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300",
   };
 
   return (
     <span
       ref={ref}
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors",
+        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold transition-colors",
         variants[variant],
         className
       )}
