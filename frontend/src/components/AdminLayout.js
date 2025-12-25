@@ -15,7 +15,8 @@ import {
   LogOut,
   MapPin,
   Menu,
-  X
+  X,
+  Settings
 } from 'lucide-react';
 
 const navigation = [
