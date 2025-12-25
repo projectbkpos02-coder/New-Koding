@@ -8,14 +8,15 @@ import {
   Trophy,
   FileText,
   Settings,
-  LogOut
+  LogOut,
+  Package
 } from 'lucide-react';
 
 const navigation = [
-  { name: 'POS', href: '/rider', icon: ShoppingCart },
-  { name: 'Leaderboard', href: '/rider/leaderboard', icon: Trophy },
-  { name: 'Laporan', href: '/rider/reports', icon: FileText },
-  { name: 'Pengaturan', href: '/rider/settings', icon: Settings },
+  { name: 'POS', href: '/rider', icon: ShoppingCart, color: 'primary' },
+  { name: 'Leaderboard', href: '/rider/leaderboard', icon: Trophy, color: 'accent' },
+  { name: 'Laporan', href: '/rider/reports', icon: FileText, color: 'purple' },
+  { name: 'Pengaturan', href: '/rider/settings', icon: Settings, color: 'secondary' },
 ];
 
 export default function RiderLayout({ children }) {
@@ -25,63 +26,125 @@ export default function RiderLayout({ children }) {
   // Initialize GPS tracking
   useGPS();
 
+  const getActiveColor = (color) => {
+    const colors = {
+      primary: 'text-blue-600 bg-blue-50',
+      secondary: 'text-green-600 bg-green-50',
+      accent: 'text-orange-500 bg-orange-50',
+      purple: 'text-purple-600 bg-purple-50',
+      default: 'text-blue-600 bg-blue-50',
+    };
+    return colors[color] || colors.default;
+  };
+
+  const isActive = (path) => location.pathname === path;
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Top bar */}
-      <header className="sticky top-0 z-30 bg-white border-b">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Top Header */}
+      <header className="sticky top-0 z-40 glass border-b border-gray-200/50 dark:border-gray-700/50">
         <div className="flex items-center justify-between h-14 px-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <ShoppingCart className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-gradient-primary rounded-xl flex items-center justify-center shadow-glow">
+              <Package className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold">POS Rider</span>
+            <div>
+              <span className="font-bold text-gray-900 dark:text-white">POS Rider</span>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Rider Mode</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{user?.full_name}</p>
-              <p className="text-xs text-gray-500">Rider</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">{user?.full_name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Rider</p>
             </div>
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <span className="text-blue-600 font-semibold text-sm">
-                {user?.full_name?.charAt(0)?.toUpperCase()}
-              </span>
+            <div className="w-9 h-9 bg-gradient-secondary rounded-full flex items-center justify-center shadow-md">
+              {user?.avatar_url ? (
+                <img src={user.avatar_url} alt={user.full_name} className="w-full h-full object-cover rounded-full" />
+              ) : (
+                <span className="text-white font-semibold text-sm">
+                  {user?.full_name?.charAt(0)?.toUpperCase()}
+                </span>
+              )}
             </div>
           </div>
         </div>
       </header>
 
       {/* Page content */}
-      <main className="p-4">
-        {children}
+      <main className="pb-nav-safe">
+        <div className="p-4 max-w-lg mx-auto animate-fade-in">
+          {children}
+        </div>
       </main>
 
-      {/* Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t safe-area-inset-bottom">
-        <div className="flex justify-around items-center h-16">
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 glass border-t border-gray-200/50 dark:border-gray-700/50 shadow-xl">
+        {/* Decorative top border */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-50" />
+        
+        <div 
+          className="flex items-center justify-evenly h-16 max-w-screen-xl mx-auto"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        >
           {navigation.map((item) => {
-            const isActive = location.pathname === item.href;
+            const active = isActive(item.href);
             return (
               <Link
-                key={item.name}
+                key={item.href}
                 to={item.href}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-colors",
-                  isActive
-                    ? "text-blue-600"
-                    : "text-gray-500"
+                  "group relative flex flex-col items-center justify-center flex-1 h-full min-w-[4rem] max-w-[6rem] px-2 space-y-1 transition-all duration-300",
+                  "hover:scale-105 active:scale-95"
                 )}
               >
-                <item.icon className={cn("w-5 h-5", isActive && "text-blue-600")} />
-                <span className="text-xs font-medium">{item.name}</span>
+                {active && (
+                  <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-green-500 animate-bounce-in" />
+                )}
+                <div className={cn(
+                  "relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300",
+                  active 
+                    ? cn(getActiveColor(item.color), "shadow-md scale-110") 
+                    : "text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-gray-800 group-hover:text-gray-600"
+                )}>
+                  {active && (
+                    <div className={cn(
+                      "absolute inset-0 rounded-xl blur-sm opacity-50 animate-pulse-slow",
+                      item.color === 'primary' && "bg-blue-500/30",
+                      item.color === 'secondary' && "bg-green-500/30",
+                      item.color === 'accent' && "bg-orange-500/30",
+                      item.color === 'purple' && "bg-purple-500/30"
+                    )} />
+                  )}
+                  <item.icon className={cn(
+                    "w-5 h-5 relative z-10 transition-transform duration-300",
+                    active && "animate-scale-in"
+                  )} />
+                </div>
+                <span className={cn(
+                  "text-[0.65rem] sm:text-xs font-semibold text-center leading-tight truncate max-w-full transition-all duration-300",
+                  active ? "text-gray-900 dark:text-white" : "text-gray-400 group-hover:text-gray-600"
+                )}>
+                  {item.name}
+                </span>
+                {active && (
+                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-green-500 rounded-full animate-fade-in" />
+                )}
               </Link>
             );
           })}
+          
+          {/* Logout Button */}
           <button
             onClick={logout}
-            className="flex flex-col items-center gap-1 px-4 py-2 text-red-500"
+            className="group relative flex flex-col items-center justify-center flex-1 h-full min-w-[4rem] max-w-[6rem] px-2 space-y-1 transition-all duration-300 hover:scale-105 active:scale-95"
           >
-            <LogOut className="w-5 h-5" />
-            <span className="text-xs font-medium">Keluar</span>
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl text-red-400 group-hover:bg-red-50 dark:group-hover:bg-red-900/30 group-hover:text-red-500 transition-all duration-300">
+              <LogOut className="w-5 h-5 relative z-10" />
+            </div>
+            <span className="text-[0.65rem] sm:text-xs font-semibold text-center leading-tight text-red-400 group-hover:text-red-500">
+              Keluar
+            </span>
           </button>
         </div>
       </nav>
