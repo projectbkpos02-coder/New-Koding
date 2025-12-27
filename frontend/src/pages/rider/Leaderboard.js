@@ -35,9 +35,9 @@ export default function RiderLeaderboard() {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchLeaderboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const getRankStyle = (index) => {
