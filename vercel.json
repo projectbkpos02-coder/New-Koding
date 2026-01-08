@@ -1,0 +1,20 @@
+{
+  "buildCommand": "bash vercel-build.sh",
+  "env": {
+    "REACT_APP_BACKEND_URL": "/api"
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
