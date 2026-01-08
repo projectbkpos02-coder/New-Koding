@@ -69,6 +69,9 @@ module.exports = async (req, res) => {
     if (pathname === '/api/auth/profile' && req.method === 'PUT') {
       return await auth.updateProfile(req, res);
     }
+    if (pathname === '/api/auth/create-test-user' && req.method === 'POST') {
+      return await auth.createTestUser(req, res);
+    }
 
     // Categories routes
     if (pathname === '/api/categories' && req.method === 'GET') {
