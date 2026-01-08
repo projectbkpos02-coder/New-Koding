@@ -249,14 +249,44 @@ module.exports = async (req, res) => {
         // Files are in ../public/ relative to /var/task/api/index.js
         const publicDir = path.join(__dirname, '..', 'public');
         let filePath;
+        
+        // For static files (JS, CSS, etc), NEVER fallback to index.html
         if (pathname.startsWith('/static/')) {
           filePath = path.join(publicDir, pathname);
-        } else if (pathname === '/' || pathname === '') {
+          
+          if (fs.existsSync(filePath)) {
+            const content = fs.readFileSync(filePath);
+            // Set appropriate content-type headers for static assets
+            if (filePath.endsWith('.js')) {
+              res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+            } else if (filePath.endsWith('.css')) {
+              res.setHeader('Content-Type', 'text/css; charset=utf-8');
+            } else if (filePath.endsWith('.map')) {
+              res.setHeader('Content-Type', 'application/json');
+            } else if (filePath.endsWith('.woff') || filePath.endsWith('.woff2')) {
+              res.setHeader('Content-Type', 'font/woff2');
+            } else if (filePath.endsWith('.png')) {
+              res.setHeader('Content-Type', 'image/png');
+            } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+              res.setHeader('Content-Type', 'image/jpeg');
+            } else if (filePath.endsWith('.svg')) {
+              res.setHeader('Content-Type', 'image/svg+xml');
+            }
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            return res.end(content);
+          } else {
+            // Static file not found - return 404, NOT index.html
+            return sendJSON(res, 404, { error: 'Static file not found' });
+          }
+        }
+        
+        // For regular paths, try exact file first, then fall back to index.html for SPA routing
+        if (pathname === '/' || pathname === '') {
           filePath = path.join(publicDir, 'index.html');
         } else {
-          // Try exact file first, then fall back to index.html for SPA routing
           filePath = path.join(publicDir, pathname);
           if (!fs.existsSync(filePath)) {
+            // Only fall back to index.html for non-static paths (SPA routing)
             filePath = path.join(publicDir, 'index.html');
           }
         }
@@ -267,9 +297,9 @@ module.exports = async (req, res) => {
           if (filePath.endsWith('.html')) {
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
           } else if (filePath.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
+            res.setHeader('Content-Type', 'text/css; charset=utf-8');
           } else if (filePath.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
           } else if (filePath.endsWith('.json')) {
             res.setHeader('Content-Type', 'application/json');
           } else if (filePath.endsWith('.map')) {
