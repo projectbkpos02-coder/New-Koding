@@ -252,7 +252,8 @@ module.exports = async (req, res) => {
         
         // For static files (JS, CSS, etc), NEVER fallback to index.html
         if (pathname.startsWith('/static/')) {
-          filePath = path.join(publicDir, pathname);
+          const relPath = pathname.replace(/^\/+/, '');
+          filePath = path.join(publicDir, relPath);
           
           if (fs.existsSync(filePath)) {
             const content = fs.readFileSync(filePath);
@@ -284,7 +285,8 @@ module.exports = async (req, res) => {
         if (pathname === '/' || pathname === '') {
           filePath = path.join(publicDir, 'index.html');
         } else {
-          filePath = path.join(publicDir, pathname);
+          const relPath = pathname.replace(/^\/+/, '');
+          filePath = path.join(publicDir, relPath);
           if (!fs.existsSync(filePath)) {
             // Only fall back to index.html for non-static paths (SPA routing)
             filePath = path.join(publicDir, 'index.html');
