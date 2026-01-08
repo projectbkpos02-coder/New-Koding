@@ -237,6 +237,12 @@ module.exports = async (req, res) => {
       return await users.getRiderLeaderboard(req, res);
     }
 
+    // Debug routes (admin only)
+    if (pathname === '/api/debug/stock-opname' && req.method === 'GET') {
+      const debugHandler = require('../lib/handlers/debug');
+      return await debugHandler.checkStockOpname(req, res);
+    }
+
     // Health check
     if (pathname === '/api/health' && req.method === 'GET') {
       return await healthCheck(req, res);
