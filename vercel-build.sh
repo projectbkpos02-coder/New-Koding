@@ -2,9 +2,14 @@
 set -euo pipefail
 echo "Running vercel-build.sh"
 
+# Navigate to project root first
+cd /vercel/path0
+echo "PROJECT ROOT PWD: $(pwd)"
+
 # Build frontend
+echo "Building frontend..."
 cd frontend
-echo "PWD: $(pwd)"
+echo "FRONTEND PWD: $(pwd)"
 echo "Listing frontend root:" && ls -la || true
 echo "Run build"
 npm ci
@@ -20,6 +25,13 @@ cp -av build/. /vercel/output/
 echo "Copying API functions to /vercel/output/api"
 cd /vercel/path0
 cp -r api /vercel/output/api
+
+# Create a simple server.js wrapper in /vercel/output if it doesn't exist
+echo "Creating server wrapper..."
+cat > /vercel/output/server.js << 'EOF'
+// Vercel serverless entry point
+module.exports = require('./api/index.js');
+EOF
 
 echo "Listing /vercel/output:" && ls -la /vercel/output || true
 echo "Listing /vercel/output/api:" && ls -la /vercel/output/api || true
