@@ -25,19 +25,6 @@ function sendJSON(res, statusCode, data) {
 }
 
 module.exports = async (req, res) => {
-  // Debug: log root directory contents on first call
-  if (!global.debugLogged) {
-    global.debugLogged = true;
-    const rootDir = path.dirname(__dirname);
-    try {
-      const files = fs.readdirSync(rootDir);
-      console.log(`[INIT] Root dir: ${rootDir}`);
-      console.log(`[INIT] Files: ${files.join(', ')}`);
-    } catch (e) {
-      console.log(`[INIT] Error listing root: ${e.message}`);
-    }
-  }
-
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
@@ -48,8 +35,7 @@ module.exports = async (req, res) => {
   );
 
   if (req.method === 'OPTIONS') {
-    res.statusCode = 200;
-    res.end();
+    res.status(200).end();
     return;
   }
 
@@ -217,22 +203,19 @@ module.exports = async (req, res) => {
     // For any non-API path, serve from static or fall back to index.html
     if (!pathname.startsWith('/api/')) {
       try {
-        // Resolve file path - in Vercel, __dirname is /var/task/api, so go up one level
-        const rootDir = path.dirname(__dirname);
+        // Try to serve static files
         let filePath;
         if (pathname.startsWith('/static/')) {
-          filePath = path.join(rootDir, pathname);
+          filePath = path.join(__dirname, '..', pathname);
         } else if (pathname === '/' || pathname === '') {
-          filePath = path.join(rootDir, 'index.html');
+          filePath = path.join(__dirname, '..', 'index.html');
         } else {
           // Try exact file first, then fall back to index.html for SPA routing
-          filePath = path.join(rootDir, pathname);
+          filePath = path.join(__dirname, '..', pathname);
           if (!fs.existsSync(filePath)) {
-            filePath = path.join(rootDir, 'index.html');
+            filePath = path.join(__dirname, '..', 'index.html');
           }
         }
-
-        console.log(`[SPA] ${pathname} -> ${filePath}, exists: ${fs.existsSync(filePath)}`);
 
         if (fs.existsSync(filePath)) {
           const content = fs.readFileSync(filePath);
