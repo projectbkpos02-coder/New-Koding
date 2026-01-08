@@ -24,6 +24,20 @@ function sendJSON(res, statusCode, data) {
   res.end(JSON.stringify(data));
 }
 
+// Health check with env var status
+async function healthCheck(req, res) {
+  sendJSON(res, 200, {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    env: {
+      supabase_url: process.env.SUPABASE_URL ? '✓ Set' : '✗ Missing',
+      supabase_key: process.env.SUPABASE_ANON_KEY ? '✓ Set' : '✗ Missing',
+      jwt_secret: process.env.JWT_SECRET ? '✓ Set' : '✗ Missing',
+      frontend_url: process.env.FRONTEND_URL || 'Not set (using default)',
+    }
+  });
+}
+
 module.exports = async (req, res) => {
   // Debug: log root directory contents on first call
   if (!global.debugLogged) {
@@ -213,7 +227,7 @@ module.exports = async (req, res) => {
 
     // Health check
     if (pathname === '/api/health' && req.method === 'GET') {
-      return sendJSON(res, 200, { status: 'ok', timestamp: new Date().toISOString() });
+      return await healthCheck(req, res);
     }
 
     // Serve static files and SPA fallback
