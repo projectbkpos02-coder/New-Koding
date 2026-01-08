@@ -131,7 +131,8 @@ CREATE TABLE IF NOT EXISTS returns (
     status VARCHAR(50) DEFAULT 'pending', -- pending, approved, rejected
     approved_by UUID REFERENCES profiles(id),
     returned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    approved_at TIMESTAMP WITH TIME ZONE
+    approved_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- =====================================================
@@ -161,7 +162,8 @@ CREATE TABLE IF NOT EXISTS rejects (
     status VARCHAR(50) DEFAULT 'pending',
     approved_by UUID REFERENCES profiles(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    approved_at TIMESTAMP WITH TIME ZONE
+    approved_at TIMESTAMP WITH TIME ZONE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- =====================================================
@@ -187,6 +189,7 @@ CREATE TABLE IF NOT EXISTS stock_opname (
     rider_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     admin_id UUID REFERENCES profiles(id),
     total_sales DECIMAL(12, 2) DEFAULT 0,
+    payment_method VARCHAR(50) DEFAULT 'tunai',
     notes TEXT,
     details JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -286,6 +289,13 @@ INSERT INTO categories (id, name, created_at) VALUES
     ('c0000000-0000-0000-0000-000000000002', 'Makanan', NOW()),
     ('c0000000-0000-0000-0000-000000000003', 'Add On', NOW())
 ON CONFLICT DO NOTHING;
+
+-- =====================================================
+-- MIGRATION: Add missing columns if they don't exist
+-- =====================================================
+ALTER TABLE stock_opname ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50) DEFAULT 'tunai';
+ALTER TABLE returns ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+ALTER TABLE rejects ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
 -- =====================================================
 -- SUCCESS MESSAGE
