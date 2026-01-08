@@ -105,8 +105,8 @@ export const stockOpnameAPI = {
 
 // GPS APIs
 export const gpsAPI = {
-  updateLocation: (latitude, longitude) => api.post('/gps/update', { latitude, longitude }),
-  getAllLocations: () => api.get('/gps/locations'),
+  updateLocation: (latitude, longitude) => api.post('/gps', { latitude, longitude }),
+  getAllLocations: () => api.get('/gps/all'),
 };
 
 // Users APIs
