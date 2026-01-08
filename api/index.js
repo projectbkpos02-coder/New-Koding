@@ -217,6 +217,10 @@ module.exports = async (req, res) => {
           }
         }
 
+        console.log(`[SPA] ${pathname} -> ${filePath}`);
+        console.log(`[DEBUG] __dirname: ${__dirname}`);
+        console.log(`[DEBUG] exists: ${fs.existsSync(filePath)}`);
+
         if (fs.existsSync(filePath)) {
           const content = fs.readFileSync(filePath);
           // Set appropriate content-type headers
