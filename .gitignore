@@ -111,3 +111,5 @@ android-sdk/ -e
 # Environment files
 *.env
 *.env.*
+vercel_local_output/
+test-function.js
