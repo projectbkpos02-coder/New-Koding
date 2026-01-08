@@ -4,11 +4,6 @@
   "env": {
     "REACT_APP_BACKEND_URL": "/api"
   },
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs22.x"
-    }
-  },
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.js" },
     { "src": "/static/(.*)", "dest": "/static/$1" },
