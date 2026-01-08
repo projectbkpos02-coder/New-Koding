@@ -4,18 +4,18 @@
 
 const fs = require('fs');
 const path = require('path');
-const auth = require('./auth');
-const categories = require('./categories');
-const products = require('./products');
-const productions = require('./productions');
-const distributions = require('./distributions');
-const riderStock = require('./rider-stock');
-const transactions = require('./transactions');
-const returns = require('./returns');
-const rejects = require('./rejects');
-const stockOpname = require('./stock-opname');
-const gps = require('./gps');
-const users = require('./users');
+const auth = require('../lib/handlers/auth');
+const categories = require('../lib/handlers/categories');
+const products = require('../lib/handlers/products');
+const productions = require('../lib/handlers/productions');
+const distributions = require('../lib/handlers/distributions');
+const riderStock = require('../lib/handlers/rider-stock');
+const transactions = require('../lib/handlers/transactions');
+const returns = require('../lib/handlers/returns');
+const rejects = require('../lib/handlers/rejects');
+const stockOpname = require('../lib/handlers/stock-opname');
+const gps = require('../lib/handlers/gps');
+const users = require('../lib/handlers/users');
 
 module.exports = async (req, res) => {
   // Enable CORS
