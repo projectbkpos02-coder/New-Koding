@@ -214,25 +214,23 @@ module.exports = async (req, res) => {
     }
 
     // Serve static files and SPA fallback
-    // For any non-API path, serve from static or fall back to index.html
+    // For any non-API path, serve from public/ directory
     if (!pathname.startsWith('/api/')) {
       try {
-        // Resolve file path - in Vercel, __dirname is /var/task/api, so go up one level
-        const rootDir = path.dirname(__dirname);
+        // Files are in ../public/ relative to /var/task/api/index.js
+        const publicDir = path.join(__dirname, '..', 'public');
         let filePath;
         if (pathname.startsWith('/static/')) {
-          filePath = path.join(rootDir, pathname);
+          filePath = path.join(publicDir, pathname);
         } else if (pathname === '/' || pathname === '') {
-          filePath = path.join(rootDir, 'index.html');
+          filePath = path.join(publicDir, 'index.html');
         } else {
           // Try exact file first, then fall back to index.html for SPA routing
-          filePath = path.join(rootDir, pathname);
+          filePath = path.join(publicDir, pathname);
           if (!fs.existsSync(filePath)) {
-            filePath = path.join(rootDir, 'index.html');
+            filePath = path.join(publicDir, 'index.html');
           }
         }
-
-        console.log(`[SPA] ${pathname} -> ${filePath}, exists: ${fs.existsSync(filePath)}`);
 
         if (fs.existsSync(filePath)) {
           const content = fs.readFileSync(filePath);
