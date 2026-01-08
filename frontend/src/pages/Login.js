@@ -116,26 +116,6 @@ export default function Login() {
               </Link>
             </p>
           </div>
-
-          <div className="mt-6 pt-6 border-t border-border">
-            <p className="text-xs text-muted-foreground text-center mb-3">Demo Account</p>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-primary/10 rounded-xl border border-primary/20 hover:border-primary/40 transition-colors cursor-pointer hover-lift"
-                onClick={() => { setEmail('superadmin@pos.com'); setPassword('admin123'); }}
-              >
-                <p className="font-semibold text-primary mb-1">Super Admin</p>
-                <p className="text-muted-foreground">superadmin@pos.com</p>
-                <p className="text-muted-foreground/70">admin123</p>
-              </div>
-              <div className="p-3 bg-secondary/10 rounded-xl border border-secondary/20 hover:border-secondary/40 transition-colors cursor-pointer hover-lift"
-                onClick={() => { setEmail('rider1@pos.com'); setPassword('rider123'); }}
-              >
-                <p className="font-semibold text-secondary mb-1">Rider</p>
-                <p className="text-muted-foreground">rider1@pos.com</p>
-                <p className="text-muted-foreground/70">rider123</p>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

@@ -4,6 +4,7 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
+    "@craco/craco": "^7.1.0",
     "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-accordion": "^1.2.8",
     "@radix-ui/react-alert-dialog": "^1.1.11",
@@ -33,12 +34,12 @@
     "@radix-ui/react-toggle-group": "^1.1.7",
     "@radix-ui/react-tooltip": "^1.2.4",
     "@tanstack/react-query": "^5.90.12",
+    "ajv": "^8.17.1",
     "axios": "^1.13.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "cra-template": "1.2.0",
-    "@craco/craco": "^7.1.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
@@ -61,10 +62,12 @@
     "zod": "^3.24.4"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
-    "test": "craco test"
+    "start": "REACT_APP_BACKEND_URL=/api craco start",
+    "build": "REACT_APP_BACKEND_URL=/api craco build",
+    "test": "craco test",
+    "dev": "npm run start"
   },
+  "proxy": "http://localhost:3000",
   "browserslist": {
     "production": [
       ">0.2%",

@@ -31,6 +31,9 @@ dist/
 dist
 
 # Environment files (comprehensive coverage)
+.env
+.env.local
+.env.*.local
 
 *token.json*
 *credentials.json*
@@ -48,6 +51,9 @@ dump.rdb
 
 # Python
 __pycache__/
+
+# Vercel
+.vercel/
 *pyc*
 venv/
 .venv/
