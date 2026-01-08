@@ -4,7 +4,7 @@
   "description": "POS Rider System - Fully Vercel Compatible",
   "main": "server.js",
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "node server.js",
