@@ -13,19 +13,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Import all API handlers
-const auth = require('./api/auth.js');
-const categories = require('./api/categories.js');
-const products = require('./api/products.js');
-const productions = require('./api/productions.js');
-const distributions = require('./api/distributions.js');
-const riderStock = require('./api/rider-stock.js');
-const transactions = require('./api/transactions.js');
-const returns = require('./api/returns.js');
-const rejects = require('./api/rejects.js');
-const stockOpname = require('./api/stock-opname.js');
-const gps = require('./api/gps.js');
-const users = require('./api/users.js');
+// Import all API handlers (moved to lib/handlers for Vercel single-function setup)
+const auth = require('./lib/handlers/auth');
+const categories = require('./lib/handlers/categories');
+const products = require('./lib/handlers/products');
+const productions = require('./lib/handlers/productions');
+const distributions = require('./lib/handlers/distributions');
+const riderStock = require('./lib/handlers/rider-stock');
+const transactions = require('./lib/handlers/transactions');
+const returns = require('./lib/handlers/returns');
+const rejects = require('./lib/handlers/rejects');
+const stockOpname = require('./lib/handlers/stock-opname');
+const gps = require('./lib/handlers/gps');
+const users = require('./lib/handlers/users');
 
 // ===========================================
 // API ROUTES
