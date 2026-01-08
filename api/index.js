@@ -17,6 +17,13 @@ const stockOpname = require('../lib/handlers/stock-opname');
 const gps = require('../lib/handlers/gps');
 const users = require('../lib/handlers/users');
 
+// Helper to send JSON
+function sendJSON(res, statusCode, data) {
+  res.statusCode = statusCode;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(JSON.stringify(data));
+}
+
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -189,7 +196,7 @@ module.exports = async (req, res) => {
 
     // Health check
     if (pathname === '/api/health' && req.method === 'GET') {
-      return res.json({ status: 'ok' });
+      return sendJSON(res, 200, { status: 'ok', timestamp: new Date().toISOString() });
     }
 
     // Serve static files and SPA fallback
@@ -221,8 +228,11 @@ module.exports = async (req, res) => {
             res.setHeader('Content-Type', 'application/javascript');
           } else if (filePath.endsWith('.json')) {
             res.setHeader('Content-Type', 'application/json');
+          } else if (filePath.endsWith('.map')) {
+            res.setHeader('Content-Type', 'application/json');
           }
-          return res.send(content);
+          res.setHeader('Cache-Control', 'public, max-age=3600');
+          return res.end(content);
         }
       } catch (err) {
         console.error('Static file error:', err);
@@ -230,9 +240,9 @@ module.exports = async (req, res) => {
     }
 
     // 404
-    res.status(404).json({ error: 'Not found' });
+    return sendJSON(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('API Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    return sendJSON(res, 500, { error: 'Internal server error', message: error.message });
   }
 };
