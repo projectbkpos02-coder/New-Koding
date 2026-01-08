@@ -110,10 +110,7 @@ export default function Login() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Belum punya akun?{' '}
-              <Link to="/register" className="text-primary hover:text-primary/80 font-semibold transition-colors">
-                Daftar di sini
-              </Link>
+              Hubungi superadmin atau admin untuk membuat akun baru.
             </p>
           </div>
         </CardContent>

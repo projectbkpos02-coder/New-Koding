@@ -67,6 +67,48 @@ export default function Reports() {
     window.print();
   };
 
+  const handleDownloadCSV = async () => {
+    try {
+      const params = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      if (selectedRider) params.rider_id = selectedRider;
+      
+      const response = await reportsAPI.exportCSV(params);
+      const url = window.URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `laporan_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading CSV:', error);
+      alert('Gagal mengunduh laporan CSV');
+    }
+  };
+
+  const handleDownloadExcel = async () => {
+    try {
+      const params = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      if (selectedRider) params.rider_id = selectedRider;
+      
+      const response = await reportsAPI.exportExcel(params);
+      const url = window.URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `laporan_${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading Excel:', error);
+      alert('Gagal mengunduh laporan Excel');
+    }
+  };
+
   const setPresetDate = (preset) => {
     const today = new Date();
     let start = new Date();
@@ -96,10 +138,20 @@ export default function Reports() {
             <h1 className="text-2xl font-bold text-gray-900">Laporan</h1>
             <p className="text-gray-500">Laporan penjualan, transaksi, dan performa rider</p>
           </div>
-          <Button onClick={handlePrint} variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Cetak Laporan
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={handlePrint} variant="outline">
+              <Download className="w-4 h-4 mr-2" />
+              Cetak
+            </Button>
+            <Button onClick={handleDownloadCSV} variant="outline">
+              <Download className="w-4 h-4 mr-2" />
+              CSV
+            </Button>
+            <Button onClick={handleDownloadExcel} variant="outline">
+              <Download className="w-4 h-4 mr-2" />
+              Excel
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}

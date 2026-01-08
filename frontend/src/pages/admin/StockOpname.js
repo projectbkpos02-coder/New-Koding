@@ -21,6 +21,7 @@ export default function StockOpname() {
   const [selectedRider, setSelectedRider] = useState(null);
   const [riderStock, setRiderStock] = useState([]);
   const [remainingQty, setRemainingQty] = useState({});
+  const [paymentMethod, setPaymentMethod] = useState('tunai');
   const [searchRider, setSearchRider] = useState('');
   const [opnameResult, setOpnameResult] = useState(null);
 
@@ -123,7 +124,8 @@ export default function StockOpname() {
       const result = await stockOpnameAPI.create({
         rider_id: selectedRider.id,
         items,
-        notes: `Stock Opname ${selectedRider.full_name}`
+        notes: `Stock Opname ${selectedRider.full_name}`,
+        payment_method: paymentMethod
       });
       
       setOpnameResult(result.data);
@@ -358,6 +360,23 @@ export default function StockOpname() {
                     <p className="text-xl font-bold text-blue-700">
                       Total Penjualan: {formatCurrency(previewCalculation.totalSales)}
                     </p>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-600 mb-1">Metode Pembayaran untuk opname:</p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant={paymentMethod === 'tunai' ? 'default' : 'outline'}
+                          onClick={() => setPaymentMethod('tunai')}
+                        >
+                          Tunai
+                        </Button>
+                        <Button
+                          variant={paymentMethod === 'qris' ? 'default' : 'outline'}
+                          onClick={() => setPaymentMethod('qris')}
+                        >
+                          QRIS
+                        </Button>
+                      </div>
+                    </div>
                     {previewCalculation.details.length > 0 && (
                       <div className="mt-2 text-sm text-blue-600">
                         {previewCalculation.details.map((d, i) => (

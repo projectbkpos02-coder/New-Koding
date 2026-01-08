@@ -121,6 +121,8 @@ export const usersAPI = {
 export const reportsAPI = {
   getSummary: (params) => api.get('/reports/summary', { params }),
   getLeaderboard: (params) => api.get('/reports/leaderboard', { params }),
+  exportCSV: (params) => api.get('/reports/export/csv', { params, responseType: 'blob' }),
+  exportExcel: (params) => api.get('/reports/export/excel', { params, responseType: 'blob' }),
 };
 
 export default api;

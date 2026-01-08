@@ -72,6 +72,14 @@ module.exports = async (req, res) => {
   try {
     // Auth routes
     if (pathname === '/api/auth/register' && req.method === 'POST') {
+      // Public registration is disabled. Only authenticated admin/super_admin
+      // may create users via the admin UI which should call the same handler
+      // but with a valid authorization token. Reject anonymous requests.
+      const token = req.headers.authorization?.split(' ')[1];
+      if (!token) {
+        return sendJSON(res, 403, { error: 'Registrasi dinonaktifkan. Hubungi superadmin/admin untuk menambah pengguna.' });
+      }
+      // If token present, forward to handler which will perform role checks
       return await auth.register(req, res);
     }
     if (pathname === '/api/auth/login' && req.method === 'POST') {
@@ -222,6 +230,16 @@ module.exports = async (req, res) => {
       // Alias for /api/users
       return await users.getRiders(req, res);
     }
+    if (pathname.match(/^\/api\/users\/[^/]+\/role$/) && req.method === 'PUT') {
+      const userId = pathname.split('/')[3];
+      req.params = { id: userId };
+      return await users.updateRole(req, res);
+    }
+    if (pathname.match(/^\/api\/users\/[^/]+$/) && req.method === 'DELETE') {
+      const userId = pathname.split('/').pop();
+      req.params = { id: userId };
+      return await users.deleteUser(req, res);
+    }
     if (pathname === '/api/users/leaderboard' && req.method === 'GET') {
       return await users.getRiderLeaderboard(req, res);
     }
@@ -231,10 +249,20 @@ module.exports = async (req, res) => {
 
     // Reports routes
     if (pathname === '/api/reports/summary' && req.method === 'GET') {
-      return await users.getUserReports(req, res);
+      const reports = require('../lib/handlers/reports');
+      return await reports.getSummary(req, res);
     }
     if (pathname === '/api/reports/leaderboard' && req.method === 'GET') {
-      return await users.getRiderLeaderboard(req, res);
+      const reports = require('../lib/handlers/reports');
+      return await reports.getLeaderboard(req, res);
+    }
+    if (pathname === '/api/reports/export/csv' && req.method === 'GET') {
+      const reports = require('../lib/handlers/reports');
+      return await reports.exportReportsCSV(req, res);
+    }
+    if (pathname === '/api/reports/export/excel' && req.method === 'GET') {
+      const reports = require('../lib/handlers/reports');
+      return await reports.exportReportsExcel(req, res);
     }
 
     // Debug routes (admin only)
