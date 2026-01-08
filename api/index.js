@@ -203,23 +203,22 @@ module.exports = async (req, res) => {
     // For any non-API path, serve from static or fall back to index.html
     if (!pathname.startsWith('/api/')) {
       try {
-        // Try to serve static files
+        // Resolve file path - in Vercel, __dirname is /var/task/api, so go up one level
+        const rootDir = path.dirname(__dirname);
         let filePath;
         if (pathname.startsWith('/static/')) {
-          filePath = path.join(__dirname, '..', pathname);
+          filePath = path.join(rootDir, pathname);
         } else if (pathname === '/' || pathname === '') {
-          filePath = path.join(__dirname, '..', 'index.html');
+          filePath = path.join(rootDir, 'index.html');
         } else {
           // Try exact file first, then fall back to index.html for SPA routing
-          filePath = path.join(__dirname, '..', pathname);
+          filePath = path.join(rootDir, pathname);
           if (!fs.existsSync(filePath)) {
-            filePath = path.join(__dirname, '..', 'index.html');
+            filePath = path.join(rootDir, 'index.html');
           }
         }
 
-        console.log(`[SPA] ${pathname} -> ${filePath}`);
-        console.log(`[DEBUG] __dirname: ${__dirname}`);
-        console.log(`[DEBUG] exists: ${fs.existsSync(filePath)}`);
+        console.log(`[SPA] ${pathname} -> ${filePath}, exists: ${fs.existsSync(filePath)}`);
 
         if (fs.existsSync(filePath)) {
           const content = fs.readFileSync(filePath);
