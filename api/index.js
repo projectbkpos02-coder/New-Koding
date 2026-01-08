@@ -218,11 +218,23 @@ module.exports = async (req, res) => {
     if (pathname === '/api/users' && req.method === 'GET') {
       return await users.getRiders(req, res);
     }
+    if (pathname === '/api/users/riders' && req.method === 'GET') {
+      // Alias for /api/users
+      return await users.getRiders(req, res);
+    }
     if (pathname === '/api/users/leaderboard' && req.method === 'GET') {
       return await users.getRiderLeaderboard(req, res);
     }
     if (pathname === '/api/users/reports' && req.method === 'GET') {
       return await users.getUserReports(req, res);
+    }
+
+    // Reports routes
+    if (pathname === '/api/reports/summary' && req.method === 'GET') {
+      return await users.getUserReports(req, res);
+    }
+    if (pathname === '/api/reports/leaderboard' && req.method === 'GET') {
+      return await users.getRiderLeaderboard(req, res);
     }
 
     // Health check
