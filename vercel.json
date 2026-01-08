@@ -5,16 +5,17 @@
     "SUPABASE_URL": "@supabase_url",
     "SUPABASE_ANON_KEY": "@supabase_anon_key",
     "JWT_SECRET": "@jwt_secret",
-    "FRONTEND_URL": "@frontend_url"
+    "FRONTEND_URL": "@frontend_url",
+    "REACT_APP_BACKEND_URL": "/api"
   },
   "functions": {
-    "api/index.js": {
-      "memory": 1024,
-      "maxDuration": 60
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
     }
   },
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.js" },
-    { "src": "/(?!.*\\..*)", "dest": "/index.html", "status": 200 }
+    { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
