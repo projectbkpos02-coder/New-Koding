@@ -21,10 +21,11 @@ mkdir -p /vercel/output
 echo "Copying frontend build to /vercel/output"
 cp -av build/. /vercel/output/
 
-# Copy API functions to /vercel/output/api
-echo "Copying API functions to /vercel/output/api"
+# Copy API functions and handlers to output
+echo "Copying API functions and handlers to /vercel/output"
 cd /vercel/path0
 cp -r api /vercel/output/api
+cp -r lib /vercel/output/lib
 
 # Create a simple server.js wrapper in /vercel/output if it doesn't exist
 echo "Creating server wrapper..."
@@ -35,3 +36,4 @@ EOF
 
 echo "Listing /vercel/output:" && ls -la /vercel/output || true
 echo "Listing /vercel/output/api:" && ls -la /vercel/output/api || true
+echo "Listing /vercel/output/lib:" && ls -la /vercel/output/lib || true
