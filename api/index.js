@@ -1,6 +1,9 @@
 // Vercel Serverless Function Router
 // This file routes all API requests to appropriate handlers
+// and serves static frontend files as a fallback (SPA)
 
+const fs = require('fs');
+const path = require('path');
 const auth = require('./auth');
 const categories = require('./categories');
 const products = require('./products');
@@ -187,6 +190,43 @@ module.exports = async (req, res) => {
     // Health check
     if (pathname === '/api/health' && req.method === 'GET') {
       return res.json({ status: 'ok' });
+    }
+
+    // Serve static files and SPA fallback
+    // For any non-API path, serve from static or fall back to index.html
+    if (!pathname.startsWith('/api/')) {
+      try {
+        // Try to serve static files
+        let filePath;
+        if (pathname.startsWith('/static/')) {
+          filePath = path.join(__dirname, '..', pathname);
+        } else if (pathname === '/' || pathname === '') {
+          filePath = path.join(__dirname, '..', 'index.html');
+        } else {
+          // Try exact file first, then fall back to index.html for SPA routing
+          filePath = path.join(__dirname, '..', pathname);
+          if (!fs.existsSync(filePath)) {
+            filePath = path.join(__dirname, '..', 'index.html');
+          }
+        }
+
+        if (fs.existsSync(filePath)) {
+          const content = fs.readFileSync(filePath);
+          // Set appropriate content-type headers
+          if (filePath.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          } else if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+          } else if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+          } else if (filePath.endsWith('.json')) {
+            res.setHeader('Content-Type', 'application/json');
+          }
+          return res.send(content);
+        }
+      } catch (err) {
+        console.error('Static file error:', err);
+      }
     }
 
     // 404
