@@ -238,6 +238,10 @@ module.exports = async (req, res) => {
     }
 
     // Debug routes (admin only)
+    if (pathname === '/api/debug/stock-opname-detailed' && req.method === 'GET') {
+      const debugHandler = require('../lib/handlers/debug');
+      return await debugHandler.checkStockOpnameDetailed(req, res);
+    }
     if (pathname === '/api/debug/stock-opname' && req.method === 'GET') {
       const debugHandler = require('../lib/handlers/debug');
       return await debugHandler.checkStockOpname(req, res);
