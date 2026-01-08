@@ -98,10 +98,13 @@ export default function Distribution() {
     }
   };
 
-  const filteredRiders = riders.filter(r => 
-    r.full_name.toLowerCase().includes(searchRider.toLowerCase()) ||
-    r.email.toLowerCase().includes(searchRider.toLowerCase())
-  );
+  // Only show users with role 'rider' for distribution
+  const filteredRiders = riders
+    .filter(r => r.role === 'rider')
+    .filter(r => 
+      r.full_name.toLowerCase().includes(searchRider.toLowerCase()) ||
+      r.email.toLowerCase().includes(searchRider.toLowerCase())
+    );
 
   return (
     <AdminLayout>
