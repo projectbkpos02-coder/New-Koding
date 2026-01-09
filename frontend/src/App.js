@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Pages
@@ -81,8 +81,40 @@ function PublicRoute({ children }) {
 function AppRoutes() {
   const { user, isAdmin, isRider } = useAuth();
 
+  // Redirect to dashboard when the page is reloaded to avoid blank white screen
+  function RedirectOnReload() {
+    const navigate = useNavigate();
+    const { user: u, isAdmin: admin } = useAuth();
+
+    useEffect(() => {
+      try {
+        let navType = null;
+        if (performance && performance.getEntriesByType) {
+          const entries = performance.getEntriesByType('navigation');
+          navType = entries && entries[0] && entries[0].type;
+        } else if (performance && performance.navigation) {
+          navType = performance.navigation.type === 1 ? 'reload' : null;
+        }
+
+        if (navType === 'reload') {
+          if (!u) {
+            navigate('/login', { replace: true });
+          } else {
+            navigate(admin ? '/admin' : '/rider', { replace: true });
+          }
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    }, [u, admin, navigate]);
+
+    return null;
+  }
+
   return (
-    <Routes>
+    <>
+      <RedirectOnReload />
+      <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
 
