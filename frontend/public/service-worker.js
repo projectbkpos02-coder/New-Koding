@@ -1,15 +1,35 @@
-const CACHE_NAME = 'bkpos-cache-v1';
-const urlsToCache = ['/', '/index.html'];
+const CACHE_NAME = 'bkpos-cache-v2';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/images/icon.png'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(urlsToCache).catch(() => {
+        // If some URLs fail, continue anyway (e.g., icon might be optional)
+        return cache.addAll(['/', '/index.html', '/manifest.json']);
+      });
+    })
   );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (event) => {
@@ -23,25 +43,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // For other requests, try cache first, then network. Do not return index.html for failed asset requests.
+  // For other requests, try network first (for freshness), then cache as fallback
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
-          if (!response || response.status !== 200 || response.type === 'opaque') {
-            return response;
-          }
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+    fetch(event.request)
+      .then((response) => {
+        if (!response || response.status !== 200 || response.type === 'opaque') {
           return response;
-        })
-        .catch(() => {
-          // If asset/network fails, just fail (do not return index.html which breaks JS parsing)
+        }
+        const responseClone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
+        return response;
+      })
+      .catch(() => {
+        // Network failed, try cache
+        return caches.match(event.request).catch(() => {
+          // Both network and cache failed
           return new Response(null, { status: 504, statusText: 'Gateway Timeout' });
         });
-    })
+      })
   );
 });
