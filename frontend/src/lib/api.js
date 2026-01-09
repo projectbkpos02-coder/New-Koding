@@ -113,6 +113,7 @@ export const gpsAPI = {
 export const usersAPI = {
   getAll: () => api.get('/users'),
   getRiders: () => api.get('/users/riders'),
+  create: (data) => api.post('/auth/register', data),
   updateRole: (userId, role) => api.put(`/users/${userId}/role?role=${role}`),
   delete: (userId) => api.delete(`/users/${userId}`),
 };

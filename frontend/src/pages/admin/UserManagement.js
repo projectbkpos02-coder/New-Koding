@@ -15,6 +15,11 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [newFullName, setNewFullName] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [newPassword, setNewPassword] = useState('password123');
+  const [newRole, setNewRole] = useState('rider');
   const { user: currentUser } = useAuth();
 
   const fetchUsers = async () => {
@@ -83,6 +88,15 @@ export default function UserManagement() {
           <h1 className="text-2xl font-bold text-gray-900">Kelola User</h1>
           <p className="text-gray-500">Kelola akun admin dan rider</p>
         </div>
+
+        {/* Add User Button */}
+        {currentUser?.role && (currentUser.role === 'super_admin' || currentUser.role === 'admin') && (
+          <div className="flex justify-end">
+            <Button onClick={() => { setSelectedUser(null); setDialogOpen(true); }}>
+              Tambah Pengguna
+            </Button>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -214,50 +228,100 @@ export default function UserManagement() {
         </Card>
 
         {/* Role Change Dialog */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setSelectedUser(null);
+            setNewEmail(''); setNewFullName(''); setNewPhone(''); setNewPassword('password123'); setNewRole('rider');
+          }
+        }}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Ubah Role User</DialogTitle>
+              <DialogTitle>{selectedUser ? 'Ubah Role User' : 'Tambah Pengguna Baru'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="font-medium">{selectedUser?.full_name}</p>
-                <p className="text-sm text-gray-500">{selectedUser?.email}</p>
-                <p className="text-sm text-gray-500 mt-1">Role saat ini: {selectedUser?.role}</p>
-              </div>
+              {selectedUser ? (
+                <>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="font-medium">{selectedUser?.full_name}</p>
+                    <p className="text-sm text-gray-500">{selectedUser?.email}</p>
+                    <p className="text-sm text-gray-500 mt-1">Role saat ini: {selectedUser?.role}</p>
+                  </div>
 
-              <div>
-                <p className="text-sm font-medium mb-2">Pilih role baru:</p>
-                <div className="space-y-2">
-                  <Button
-                    variant={selectedUser?.role === 'rider' ? 'default' : 'outline'}
-                    className="w-full justify-start"
-                    onClick={() => handleRoleChange(selectedUser?.id, 'rider')}
-                    disabled={saving}
-                  >
-                    <Bike className="w-4 h-4 mr-2" />
-                    Rider - Akses POS, leaderboard, laporan pribadi
-                  </Button>
-                  <Button
-                    variant={selectedUser?.role === 'admin' ? 'default' : 'outline'}
-                    className="w-full justify-start"
-                    onClick={() => handleRoleChange(selectedUser?.id, 'admin')}
-                    disabled={saving}
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Admin - Akses penuh kecuali kelola user
-                  </Button>
-                  <Button
-                    variant={selectedUser?.role === 'super_admin' ? 'default' : 'outline'}
-                    className="w-full justify-start"
-                    onClick={() => handleRoleChange(selectedUser?.id, 'super_admin')}
-                    disabled={saving}
-                  >
-                    <Shield className="w-4 h-4 mr-2" />
-                    Super Admin - Akses penuh termasuk kelola user
-                  </Button>
+                  <div>
+                    <p className="text-sm font-medium mb-2">Pilih role baru:</p>
+                    <div className="space-y-2">
+                      <Button
+                        variant={selectedUser?.role === 'rider' ? 'default' : 'outline'}
+                        className="w-full justify-start"
+                        onClick={() => handleRoleChange(selectedUser?.id, 'rider')}
+                        disabled={saving}
+                      >
+                        <Bike className="w-4 h-4 mr-2" />
+                        Rider - Akses POS, leaderboard, laporan pribadi
+                      </Button>
+                      <Button
+                        variant={selectedUser?.role === 'admin' ? 'default' : 'outline'}
+                        className="w-full justify-start"
+                        onClick={() => handleRoleChange(selectedUser?.id, 'admin')}
+                        disabled={saving}
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        Admin - Akses penuh kecuali kelola user
+                      </Button>
+                      <Button
+                        variant={selectedUser?.role === 'super_admin' ? 'default' : 'outline'}
+                        className="w-full justify-start"
+                        onClick={() => handleRoleChange(selectedUser?.id, 'super_admin')}
+                        disabled={saving}
+                      >
+                        <Shield className="w-4 h-4 mr-2" />
+                        Super Admin - Akses penuh termasuk kelola user
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // Create user form
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-2">
+                    <label className="text-sm">Email</label>
+                    <input className="input" value={newEmail} onChange={e => setNewEmail(e.target.value)} />
+                    <label className="text-sm">Nama Lengkap</label>
+                    <input className="input" value={newFullName} onChange={e => setNewFullName(e.target.value)} />
+                    <label className="text-sm">Telepon</label>
+                    <input className="input" value={newPhone} onChange={e => setNewPhone(e.target.value)} />
+                    <label className="text-sm">Password</label>
+                    <input className="input" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+                    <label className="text-sm">Role</label>
+                    <select className="input" value={newRole} onChange={e => setNewRole(e.target.value)}>
+                      <option value="rider">Rider</option>
+                      <option value="admin">Admin</option>
+                      <option value="super_admin">Super Admin</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Button className="w-full" onClick={async () => {
+                      setSaving(true);
+                      try {
+                        // If current user is admin, force role to rider client-side to avoid accidental privilege escalation
+                        const roleToCreate = (currentUser.role === 'admin' && newRole !== 'rider') ? 'rider' : newRole;
+                        await usersAPI.create({ email: newEmail, password: newPassword, full_name: newFullName, phone: newPhone, role: roleToCreate });
+                        setDialogOpen(false);
+                        fetchUsers();
+                        alert('Pengguna berhasil dibuat');
+                      } catch (err) {
+                        console.error('Error creating user:', err);
+                        alert(err.response?.data?.error || 'Gagal membuat pengguna');
+                      } finally {
+                        setSaving(false);
+                      }
+                    }}>
+                      Buat Pengguna
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)}>Tutup</Button>
