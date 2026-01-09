@@ -27,6 +27,20 @@ cd "$ROOT_DIR"
 mkdir -p public
 cp frontend/build/index.html public/
 cp -r frontend/build/static public/
+# Copy manifest, service worker, icons and images so they are served from root
+if [ -f frontend/build/manifest.json ]; then
+  cp frontend/build/manifest.json public/ || true
+fi
+if [ -f frontend/build/service-worker.js ]; then
+  cp frontend/build/service-worker.js public/ || true
+fi
+if [ -d frontend/build/icons ]; then
+  cp -r frontend/build/icons public/ || true
+fi
+if [ -d frontend/public/images ]; then
+  mkdir -p public/images
+  cp -r frontend/public/images/* public/images/ || true
+fi
 
 echo "Build complete. Files ready for deployment."
 ls -la public/
