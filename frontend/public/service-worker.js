@@ -15,12 +15,20 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  // For navigation requests (navigating to a page), fallback to index.html
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // For other requests, try cache first, then network. Do not return index.html for failed asset requests.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request)
         .then((response) => {
-          // Don't cache opaque responses (e.g., cross-origin)
           if (!response || response.status !== 200 || response.type === 'opaque') {
             return response;
           }
@@ -30,7 +38,10 @@ self.addEventListener('fetch', (event) => {
           });
           return response;
         })
-        .catch(() => caches.match('/index.html'));
+        .catch(() => {
+          // If asset/network fails, just fail (do not return index.html which breaks JS parsing)
+          return new Response(null, { status: 504, statusText: 'Gateway Timeout' });
+        });
     })
   );
 });

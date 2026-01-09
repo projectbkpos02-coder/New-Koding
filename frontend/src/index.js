@@ -11,5 +11,11 @@ root.render(
   </React.StrictMode>,
 );
 
-// Register service worker to enable PWA installability/offline support
-serviceWorkerRegistration.register();
+// Register service worker only in production to avoid interfering during development
+if (process.env.NODE_ENV === 'production') {
+  serviceWorkerRegistration.register();
+} else {
+  // In development, ensure no stale service worker remains registered
+  // (optional) uncomment to auto-unregister during dev
+  // serviceWorkerRegistration.unregister();
+}
