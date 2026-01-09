@@ -44,8 +44,8 @@ export default function Login() {
 
       <Card className="w-full max-w-md relative z-10 shadow-xl border-border/50 bg-card/80 backdrop-blur-xl animate-fade-in-up">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto w-20 h-20 bg-gradient-primary rounded-2xl flex items-center justify-center mb-4 shadow-glow animate-bounce-in hover-scale">
-            <Package className="w-10 h-10 text-white" />
+          <div className="mx-auto w-20 h-20 bg-gradient-primary rounded-2xl flex items-center justify-center mb-4 shadow-glow animate-bounce-in hover-scale overflow-hidden">
+            <img src="/images/icon.png" alt="BKPOS Logo" className="w-full h-full object-cover rounded-2xl" />
           </div>
           <CardTitle className="text-2xl font-bold text-gradient-shine">
             POS Rider
