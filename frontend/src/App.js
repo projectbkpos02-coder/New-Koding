@@ -148,11 +148,41 @@ function AppRoutes() {
 
       {/* 404 Route */}
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }
 
 function App() {
+  useEffect(() => {
+    try {
+      let navType = null;
+      if (performance && performance.getEntriesByType) {
+        const entries = performance.getEntriesByType('navigation');
+        navType = entries && entries[0] && entries[0].type;
+      } else if (performance && performance.navigation) {
+        navType = performance.navigation.type === 1 ? 'reload' : null;
+      }
+
+      if (navType === 'reload') {
+        const storedUser = localStorage.getItem('user');
+        if (!storedUser) {
+          window.location.replace('/login');
+        } else {
+          try {
+            const u = JSON.parse(storedUser);
+            const path = u.role === 'admin' || u.role === 'super_admin' ? '/admin' : '/rider';
+            window.location.replace(path);
+          } catch (e) {
+            window.location.replace('/login');
+          }
+        }
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }, []);
+
   return (
     <Router>
       <AuthProvider>
