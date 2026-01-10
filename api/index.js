@@ -344,6 +344,10 @@ module.exports = async (req, res) => {
           // Set appropriate content-type headers
           if (filePath.endsWith('.html')) {
             res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            // Ensure index.html is not aggressively cached so clients fetch new asset names
+            if (path.basename(filePath) === 'index.html') {
+              res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+            }
           } else if (filePath.endsWith('.css')) {
             res.setHeader('Content-Type', 'text/css; charset=utf-8');
           } else if (filePath.endsWith('.js')) {
@@ -353,7 +357,10 @@ module.exports = async (req, res) => {
           } else if (filePath.endsWith('.map')) {
             res.setHeader('Content-Type', 'application/json');
           }
-          res.setHeader('Cache-Control', 'public, max-age=3600');
+          // If Cache-Control not already set (e.g., index.html handled above), set default
+          if (!res.getHeader('Cache-Control')) {
+            res.setHeader('Cache-Control', 'public, max-age=3600');
+          }
           return res.end(content);
         }
       } catch (err) {
