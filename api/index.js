@@ -326,7 +326,15 @@ module.exports = async (req, res) => {
           const relPath = pathname.replace(/^\/+/, '');
           filePath = path.join(publicDir, relPath);
           if (!fs.existsSync(filePath)) {
-            // Only fall back to index.html for non-static paths (SPA routing)
+            // If the request looks like a static asset (has an extension),
+            // return 404 instead of falling back to index.html. This avoids
+            // serving HTML for JS/CSS requests which causes "Unexpected token '<'".
+            const ext = path.extname(relPath).toLowerCase();
+            const staticExts = ['.js', '.css', '.json', '.map', '.png', '.jpg', '.jpeg', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.txt'];
+            if (ext && staticExts.includes(ext)) {
+              return sendJSON(res, 404, { error: 'Static file not found' });
+            }
+            // Only fall back to index.html for SPA routes (no file extension)
             filePath = path.join(publicDir, 'index.html');
           }
         }
