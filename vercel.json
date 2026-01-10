@@ -6,6 +6,18 @@
   "routes": [
     { "handle": "filesystem" },
     {
+      "src": "/manifest.json",
+      "dest": "/manifest.json"
+    },
+    {
+      "src": "/service-worker.js",
+      "dest": "/service-worker.js"
+    },
+    {
+      "src": "/icons/(.*)",
+      "dest": "/icons/$1"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/index.js"
     },
