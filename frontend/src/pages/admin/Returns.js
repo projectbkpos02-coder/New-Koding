@@ -3,7 +3,9 @@ import AdminLayout from '../../components/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
-import { returnsAPI } from '../../lib/api';
+import { returnsAPI, usersAPI, riderStockAPI } from '../../lib/api';
+import { Input } from '../../components/ui/Input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/Dialog';
 import { formatDateTime } from '../../lib/utils';
 import { Undo2, Check, X, Loader2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/Tabs';
@@ -13,6 +15,11 @@ export default function Returns() {
   const [approvedReturns, setApprovedReturns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState({});
+  const [riders, setRiders] = useState([]);
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [selectedRider, setSelectedRider] = useState(null);
+  const [riderStock, setRiderStock] = useState([]);
+  const [returnQuantities, setReturnQuantities] = useState({});
 
   const fetchData = async () => {
     setLoading(true);
@@ -21,6 +28,9 @@ export default function Returns() {
         returnsAPI.getAll('pending')
       ]);
       setPendingReturns(pendingRes.data);
+      // fetch riders for admin return creation
+      const ridersRes = await usersAPI.getRiders();
+      setRiders(ridersRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -60,6 +70,58 @@ export default function Returns() {
     }
   };
 
+  const openCreateReturn = async () => {
+    setReturnDialogOpen(true);
+  };
+
+  const handleSelectRider = async (rider) => {
+    setSelectedRider(rider);
+    setReturnQuantities({});
+    try {
+      const stockRes = await riderStockAPI.getRiderStock(rider.id);
+      setRiderStock(stockRes.data || []);
+    } catch (e) {
+      console.error('Error fetching rider stock:', e);
+      setRiderStock([]);
+    }
+  };
+
+  const handleReturnAll = async () => {
+    if (!selectedRider) return alert('Pilih rider terlebih dahulu');
+    if (!window.confirm(`Buat return untuk semua produk rider ${selectedRider.full_name}?`)) return;
+
+    const items = riderStock.map(s => ({ product_id: s.product_id, quantity: s.quantity, notes: 'Sisa penjualan harian' }));
+    if (items.length === 0) return alert('Tidak ada stock untuk dikembalikan');
+
+    try {
+      await returnsAPI.create({ rider_id: selectedRider.id, items, notes: 'Sisa penjualan harian' });
+      setReturnDialogOpen(false);
+      fetchData();
+      alert('Permintaan return dibuat untuk semua produk');
+    } catch (e) {
+      console.error('Error creating bulk return:', e);
+      alert('Gagal membuat return');
+    }
+  };
+
+  const handleCreateReturns = async () => {
+    if (!selectedRider) return alert('Pilih rider terlebih dahulu');
+    const items = Object.entries(returnQuantities)
+      .filter(([_, qty]) => qty > 0)
+      .map(([product_id, quantity]) => ({ product_id, quantity, notes: 'Sisa penjualan harian' }));
+    if (items.length === 0) return alert('Pilih minimal 1 produk untuk return');
+
+    try {
+      await returnsAPI.create({ rider_id: selectedRider.id, items, notes: 'Sisa penjualan harian' });
+      setReturnDialogOpen(false);
+      fetchData();
+      alert('Permintaan return dibuat');
+    } catch (e) {
+      console.error('Error creating returns:', e);
+      alert('Gagal membuat return');
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -80,6 +142,9 @@ export default function Returns() {
               </p>
             </div>
           </div>
+        </div>
+        <div className="flex justify-end">
+          <Button onClick={openCreateReturn}>Buat Return</Button>
         </div>
 
         <Card>
@@ -152,6 +217,50 @@ export default function Returns() {
             )}
           </CardContent>
         </Card>
+
+        {/* Create Return Dialog */}
+        <Dialog open={returnDialogOpen} onOpenChange={setReturnDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Buat Return untuk Rider</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <p className="text-sm font-medium">Pilih Rider</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {riders.filter(r => r.role === 'rider').map(r => (
+                      <button key={r.id} onClick={() => handleSelectRider(r)} className={`w-full text-left p-2 rounded ${selectedRider?.id === r.id ? 'bg-blue-50' : 'hover:bg-gray-100'}`}>
+                        {r.full_name} <div className="text-xs text-gray-400">{r.email}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Rider Stock</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {riderStock.length === 0 && <p className="text-sm text-gray-500">Pilih rider untuk melihat stock</p>}
+                    {riderStock.map(s => (
+                      <div key={s.product_id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div>
+                          <div className="font-medium">{s.products?.name}</div>
+                          <div className="text-xs text-gray-400">Stok: {s.quantity}</div>
+                        </div>
+                        <Input type="number" value={returnQuantities[s.product_id] || ''} onChange={(e) => setReturnQuantities({ ...returnQuantities, [s.product_id]: Math.max(0, parseInt(e.target.value) || 0) })} className="w-20" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setReturnDialogOpen(false)}>Batal</Button>
+                <Button onClick={handleReturnAll}>Return Semua</Button>
+                <Button onClick={handleCreateReturns}>Buat Return</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );

@@ -60,6 +60,31 @@ export default function Distribution() {
     setDialogOpen(true);
   };
 
+  const handleQuickAdd = (productId, amount = 5) => {
+    const current = quantities[productId] || 0;
+    const product = products.find(p => p.id === productId);
+    const max = product?.stock_in_warehouse || 0;
+    const next = Math.min(max, current + amount);
+    setQuantities({ ...quantities, [productId]: next });
+  };
+
+  const handleAutoSend = () => {
+    // Defaults: Add On -> 5, Milk series -> 5, Kopi -> 30
+    const next = { ...quantities };
+    products.forEach(p => {
+      const cat = (p.category_name || '').toLowerCase();
+      const name = (p.name || '').toLowerCase();
+      let qty = 0;
+      if (cat.includes('add') || name.includes('add on') || cat.includes('add on')) qty = 5;
+      if (cat.includes('milk') || name.includes('milk')) qty = Math.max(qty, 5);
+      if (cat.includes('kopi') || name.includes('kopi')) qty = Math.max(qty, 30);
+      if (qty > 0) {
+        next[p.id] = Math.min(p.stock_in_warehouse || 0, qty);
+      }
+    });
+    setQuantities(next);
+  };
+
   const getRiderStockForProduct = (productId) => {
     const stock = riderStock.find(s => s.product_id === productId);
     return stock?.quantity || 0;
@@ -228,6 +253,11 @@ export default function Distribution() {
               {/* Products */}
               <div className="space-y-3">
                 <p className="text-sm font-medium text-gray-700">Pilih Produk & Jumlah:</p>
+                <div className="flex items-center gap-2 mb-2">
+                  <Button size="sm" variant="outline" onClick={() => setQuantities({})}>Reset</Button>
+                  <Button size="sm" onClick={handleAutoSend}>Auto Send</Button>
+                  <p className="text-xs text-gray-500 ml-2">Auto: Add On=5, Milk=5, Kopi=30</p>
+                </div>
                 {products.filter(p => p.stock_in_warehouse > 0).map((product) => (
                   <div key={product.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <div className="w-10 h-10 bg-white rounded flex items-center justify-center flex-shrink-0">
@@ -253,6 +283,15 @@ export default function Distribution() {
                         onClick={() => handleQuantityChange(product.id, (quantities[product.id] || 0) - 1)}
                       >
                         <Minus className="w-3 h-3" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => handleQuickAdd(product.id, 5)}
+                        title="Tambah +5 cepat"
+                      >
+                        +5
                       </Button>
                       <Input
                         type="number"

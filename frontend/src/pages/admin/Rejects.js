@@ -3,7 +3,9 @@ import AdminLayout from '../../components/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
-import { rejectsAPI } from '../../lib/api';
+import { rejectsAPI, usersAPI, riderStockAPI } from '../../lib/api';
+import { Input } from '../../components/ui/Input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/Dialog';
 import { formatDateTime, formatCurrency } from '../../lib/utils';
 import { AlertTriangle, Check, X, Loader2 } from 'lucide-react';
 
@@ -11,6 +13,13 @@ export default function Rejects() {
   const [pendingRejects, setPendingRejects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState({});
+  const [riders, setRiders] = useState([]);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedRider, setSelectedRider] = useState(null);
+  const [riderStock, setRiderStock] = useState([]);
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [rejectQty, setRejectQty] = useState(0);
+  const [rejectNote, setRejectNote] = useState('');
 
   const fetchData = async () => {
     setLoading(true);
@@ -19,6 +28,8 @@ export default function Rejects() {
         rejectsAPI.getAll('pending')
       ]);
       setPendingRejects(pendingRes.data);
+      const ridersRes = await usersAPI.getRiders();
+      setRiders(ridersRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -42,6 +53,41 @@ export default function Rejects() {
       alert('Gagal approve reject');
     } finally {
       setProcessing({ ...processing, [id]: null });
+    }
+  };
+
+  const openCreateReject = () => setCreateDialogOpen(true);
+
+  const handleSelectRider = async (rider) => {
+    setSelectedRider(rider);
+    setSelectedProductId(null);
+    setRejectQty(0);
+    setRejectNote('');
+    try {
+      const stockRes = await riderStockAPI.getRiderStock(rider.id);
+      setRiderStock(stockRes.data || []);
+    } catch (e) {
+      console.error('Error fetching rider stock:', e);
+      setRiderStock([]);
+    }
+  };
+
+  const setQuickReason = (reason) => {
+    setRejectNote(reason);
+  };
+
+  const handleCreateReject = async () => {
+    if (!selectedRider || !selectedProductId || !rejectQty || rejectQty <= 0) return alert('Pilih rider, produk, dan jumlah');
+    if (!rejectNote || rejectNote.trim() === '') return alert('Keterangan reject wajib diisi');
+
+    try {
+      await rejectsAPI.create({ rider_id: selectedRider.id, product_id: selectedProductId, quantity: rejectQty, notes: rejectNote });
+      setCreateDialogOpen(false);
+      fetchData();
+      alert('Permintaan reject dibuat');
+    } catch (e) {
+      console.error('Error creating reject:', e);
+      alert(e.response?.data?.error || 'Gagal membuat reject');
     }
   };
 
@@ -80,6 +126,10 @@ export default function Rejects() {
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button onClick={openCreateReject}>Buat Reject</Button>
         </div>
 
         <Card>
@@ -156,6 +206,64 @@ export default function Rejects() {
             )}
           </CardContent>
         </Card>
+
+        {/* Create Reject Dialog */}
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Buat Permintaan Reject</DialogTitle>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <p className="text-sm font-medium">Pilih Rider</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {riders.filter(r => r.role === 'rider').map(r => (
+                      <button key={r.id} onClick={() => handleSelectRider(r)} className={`w-full text-left p-2 rounded ${selectedRider?.id === r.id ? 'bg-blue-50' : 'hover:bg-gray-100'}`}>
+                        {r.full_name} <div className="text-xs text-gray-400">{r.email}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium">Pilih Produk & Jumlah</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {riderStock.length === 0 && <p className="text-sm text-gray-500">Pilih rider untuk melihat stock</p>}
+                    {riderStock.map(s => (
+                      <div key={s.product_id} className={`flex items-center justify-between p-2 rounded ${selectedProductId === s.product_id ? 'bg-blue-50' : 'bg-gray-50'}`}>
+                        <div>
+                          <div className="font-medium">{s.products?.name}</div>
+                          <div className="text-xs text-gray-400">Stok: {s.quantity}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Input type="number" className="w-20" value={selectedProductId === s.product_id ? rejectQty : ''} onChange={(e) => { setSelectedProductId(s.product_id); setRejectQty(Math.max(0, parseInt(e.target.value) || 0)); }} />
+                          <Button size="sm" onClick={() => { setSelectedProductId(s.product_id); setRejectQty(Math.min(s.quantity || 0, (rejectQty || 0) + 1)); }}>+1</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium">Keterangan / Alasan</p>
+                <div className="flex gap-2 mt-2 mb-3">
+                  <Button size="sm" variant="outline" onClick={() => setQuickReason('Produk rusak')}>Produk rusak</Button>
+                  <Button size="sm" variant="outline" onClick={() => setQuickReason('Produk kadaluarsa/cacat')}>Kadaluarsa/Cacat</Button>
+                  <Button size="sm" variant="outline" onClick={() => setQuickReason('Produk tumpah')}>Produk tumpah</Button>
+                </div>
+                <Input value={rejectNote} onChange={(e) => setRejectNote(e.target.value)} placeholder="Keterangan reject..." />
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Batal</Button>
+                <Button variant="destructive" onClick={handleCreateReject}>Buat Reject</Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
