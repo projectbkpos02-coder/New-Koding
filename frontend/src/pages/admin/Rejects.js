@@ -111,8 +111,8 @@ export default function Rejects() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Produk Reject/Rusak</h1>
-          <p className="text-gray-500">Kelola produk rusak/tidak layak jual</p>
+          <h1 className="text-2xl font-bold text-gray-900">Reject Rider</h1>
+          <p className="text-gray-500">Buat dan kelola permintaan reject untuk rider</p>
         </div>
 
         {/* Info Box */}

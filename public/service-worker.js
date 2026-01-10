@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bkpos-cache-v2';
+const CACHE_NAME = 'bkpos-cache-v3';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -50,6 +50,14 @@ self.addEventListener('fetch', (event) => {
         if (!response || response.status !== 200 || response.type === 'opaque') {
           return response;
         }
+
+        // Avoid caching HTML responses for asset URLs (prevents serving index.html
+        // where a JS/CSS was expected). Only cache when content-type is not HTML.
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('text/html')) {
+          return response;
+        }
+
         const responseClone = response.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseClone);

@@ -127,8 +127,8 @@ export default function Returns() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Return Produk</h1>
-          <p className="text-gray-500">Kelola pengembalian produk dari rider ke gudang</p>
+          <h1 className="text-2xl font-bold text-gray-900">Return Rider</h1>
+          <p className="text-gray-500">Buat dan kelola return yang diajukan untuk rider</p>
         </div>
 
         {/* Info Box */}
