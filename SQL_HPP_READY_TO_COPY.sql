@@ -8,7 +8,7 @@
 -- ============================================
 
 -- STEP 1: Add HPP column (Harga Pokok Penjualan / Cost)
-ALTER TABLE IF NOT EXISTS products 
+ALTER TABLE products 
 ADD COLUMN IF NOT EXISTS hpp DECIMAL(12, 2) DEFAULT 0;
 
 -- STEP 2: Add index untuk performa query

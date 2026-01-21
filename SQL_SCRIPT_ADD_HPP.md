@@ -35,7 +35,7 @@ Gunakan ini jika Anda baru pertama kali menambahkan HPP field:
 
 ```sql
 -- Add HPP (Harga Pokok Penjualan/Cost) column to products table
-ALTER TABLE IF NOT EXISTS products 
+ALTER TABLE products 
 ADD COLUMN IF NOT EXISTS hpp DECIMAL(12, 2) DEFAULT 0;
 
 -- Verify column was added
@@ -59,7 +59,7 @@ Gunakan ini jika Anda ingin optimize query performance:
 
 ```sql
 -- Add HPP column
-ALTER TABLE IF NOT EXISTS products 
+ALTER TABLE products 
 ADD COLUMN IF NOT EXISTS hpp DECIMAL(12, 2) DEFAULT 0;
 
 -- Add index untuk faster queries
@@ -80,7 +80,7 @@ Gunakan ini jika Anda ingin set HPP untuk existing products based on price:
 
 ```sql
 -- Add HPP column
-ALTER TABLE IF NOT EXISTS products 
+ALTER TABLE products 
 ADD COLUMN IF NOT EXISTS hpp DECIMAL(12, 2) DEFAULT 0;
 
 -- Initialize HPP = 70% of price (adjust % jika perlu)
@@ -109,7 +109,7 @@ Jalankan semua langkah sekaligus:
 
 ```sql
 -- Step 1: Add HPP column
-ALTER TABLE IF NOT EXISTS products 
+ALTER TABLE products 
 ADD COLUMN IF NOT EXISTS hpp DECIMAL(12, 2) DEFAULT 0;
 
 -- Step 2: Add index for performance
