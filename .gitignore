@@ -113,3 +113,4 @@ android-sdk/ -e
 *.env.*
 vercel_local_output/
 test-function.js
+.gitignore
