@@ -37,32 +37,45 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - serve from cache, fall back to network
 self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  
+  // Only cache GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+  
   // Don't cache API calls
-  if (event.request.url.includes('/api/')) {
+  if (request.url.includes('/api/')) {
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then((response) => {
+    caches.match(request).then((response) => {
       if (response) {
         return response;
       }
-      return fetch(event.request)
+      return fetch(request)
         .then((response) => {
           // Don't cache non-successful responses
           if (!response || response.status !== 200 || response.type === 'error') {
             return response;
           }
-          // Clone the response
+          // Clone the response before caching
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
+            try {
+              cache.put(request, responseToCache).catch(() => {
+                // Silently fail if caching fails
+              });
+            } catch (e) {
+              // Silently fail if request method not allowed for caching
+            }
           });
           return response;
         })
         .catch(() => {
-          // Return a placeholder or cached response if available
-          return caches.match(event.request);
+          // Return cached response if available, otherwise fail silently
+          return caches.match(request);
         });
     })
   );
