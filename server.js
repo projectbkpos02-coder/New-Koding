@@ -97,8 +97,22 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve frontend build if present (production or local build)
-const buildPath = path.join(__dirname, 'frontend', 'build');
+const buildPath = path.join(__dirname, 'public');
 if (fs.existsSync(buildPath)) {
+  // Serve static files with proper cache headers
+  app.use((req, res, next) => {
+    // Cache busting for HTML, manifest, service worker (always fresh)
+    if (req.path.match(/\.(html|json)$/) || req.path === '/service-worker.js') {
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+    }
+    // Cache static assets with hash (long cache)
+    else if (req.path.match(/\.(js|css)$/)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+    next();
+  });
+  
   app.use(express.static(buildPath));
   app.get('/', (req, res) => res.sendFile(path.join(buildPath, 'index.html')));
   app.get('*', (req, res, next) => {

@@ -85,10 +85,6 @@ export default function Reports() {
     fetchData();
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const handleDownloadExcel = async () => {
     try {
       const params = {};
@@ -166,10 +162,6 @@ export default function Reports() {
             <p className="text-gray-500">Ringkasan penjualan, transaksi, dan performa rider dengan analisis laba rugi</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={handlePrint} variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Cetak
-            </Button>
             <Button onClick={handleDownloadExcel} variant="outline" size="sm">
               <Download className="w-4 h-4 mr-2" />
               Excel
