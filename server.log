@@ -1,0 +1,11 @@
+[dotenv@17.2.3] injecting env (6) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+
+╔════════════════════════════════════════════╗
+║  ✅ Development Server Running             ║
+╠════════════════════════════════════════════╣
+║  📱 Frontend: http://localhost:3001      ║
+║  🔌 API:     http://localhost:3001/api   ║
+║  📊 Health:  http://localhost:3001/api/health ║
+╚════════════════════════════════════════════╝
+  
+getAllRidersGPS error: { status: 401, message: 'No authorization token' }

@@ -5,7 +5,7 @@ import { Badge } from '../../components/ui/Badge';
 import { reportsAPI, transactionsAPI } from '../../lib/api';
 import { formatCurrency, formatDateTime } from '../../lib/utils';
 import { useAuth } from '../../contexts/AuthContext';
-import { FileText, TrendingUp, ShoppingCart, Loader2, RefreshCw, Calendar } from 'lucide-react';
+import { FileText, TrendingUp, ShoppingCart, Loader2, RefreshCw, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 
@@ -16,6 +16,7 @@ export default function RiderReports() {
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [expandedTransactions, setExpandedTransactions] = useState({});
 
   const fetchData = async () => {
     setLoading(true);
@@ -60,6 +61,13 @@ export default function RiderReports() {
     
     setStartDate(start.toISOString().split('T')[0]);
     setEndDate(new Date().toISOString().split('T')[0]);
+  };
+
+  const toggleExpanded = (transactionId) => {
+    setExpandedTransactions(prev => ({
+      ...prev,
+      [transactionId]: !prev[transactionId]
+    }));
   };
 
   return (
@@ -174,23 +182,60 @@ export default function RiderReports() {
                 ) : (
                   <div className="space-y-2">
                     {transactions.slice(0, 20).map((trans, index) => (
-                      <div 
-                        key={trans.id} 
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/80 transition-colors duration-200 animate-fade-in-up"
-                        style={{ animationDelay: `${(index + 3) * 50}ms` }}
-                      >
-                        <div>
-                          <p className="font-medium text-sm text-foreground">{formatDateTime(trans.created_at)}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge 
-                              variant="secondary" 
-                              className={`text-xs capitalize ${trans.payment_method === 'tunai' ? 'bg-secondary/20 text-secondary' : 'bg-primary/20 text-primary'}`}
-                            >
-                              {trans.payment_method}
-                            </Badge>
+                      <div key={trans.id}>
+                        <button
+                          onClick={() => toggleExpanded(trans.id)}
+                          className="w-full flex items-center justify-between p-3 bg-muted/50 rounded-xl hover:bg-muted/80 transition-colors duration-200 animate-fade-in-up group"
+                          style={{ animationDelay: `${(index + 3) * 50}ms` }}
+                        >
+                          <div className="text-left">
+                            <p className="font-medium text-sm text-foreground">{formatDateTime(trans.created_at)}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge 
+                                variant="secondary" 
+                                className={`text-xs capitalize ${trans.payment_method === 'tunai' ? 'bg-secondary/20 text-secondary' : 'bg-primary/20 text-primary'}`}
+                              >
+                                {trans.payment_method}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {trans.transaction_items?.length || 0} item(s)
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                        <p className="font-bold text-secondary">{formatCurrency(trans.total_amount)}</p>
+                          <div className="flex items-center gap-3">
+                            <p className="font-bold text-secondary">{formatCurrency(trans.total_amount)}</p>
+                            {expandedTransactions[trans.id] ? (
+                              <ChevronUp className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+                            )}
+                          </div>
+                        </button>
+
+                        {/* Expanded Details */}
+                        {expandedTransactions[trans.id] && (
+                          <div className="mt-1 ml-2 pl-2 border-l-2 border-primary/30 bg-primary/5 rounded-r-lg space-y-1 p-2 animate-fade-in">
+                            {trans.transaction_items && trans.transaction_items.length > 0 ? (
+                              trans.transaction_items.map((item, idx) => (
+                                <div 
+                                  key={idx}
+                                  className="flex items-center justify-between text-xs p-2 bg-background rounded hover:bg-muted/50 transition-colors"
+                                >
+                                  <div>
+                                    <p className="font-medium text-foreground">{item.products?.name || 'Product'}</p>
+                                    <p className="text-muted-foreground">Qty: {item.quantity}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-semibold text-primary">{formatCurrency(item.price * item.quantity)}</p>
+                                    <p className="text-xs text-muted-foreground">{formatCurrency(item.price)}/pcs</p>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-xs text-muted-foreground italic p-2">Tidak ada detail item</p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

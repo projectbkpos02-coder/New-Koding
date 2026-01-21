@@ -81,10 +81,10 @@ app.put('/api/rejects/:reject_id/reject', rejects.rejectReject);
 app.post('/api/stock-opname', stockOpname.createStockOpname);
 app.get('/api/stock-opname', stockOpname.getStockOpnames);
 
-// GPS routes
+// GPS routes (note: /all must come before /:rider_id to avoid route conflict)
 app.post('/api/gps', gps.updateGPS);
-app.get('/api/gps/:rider_id', gps.getRiderGPS);
 app.get('/api/gps/all', gps.getAllRidersGPS);
+app.get('/api/gps/:rider_id', gps.getRiderGPS);
 
 // Users routes
 app.get('/api/users', users.getRiders);
