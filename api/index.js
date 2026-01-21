@@ -256,6 +256,10 @@ module.exports = async (req, res) => {
       const reports = require('../lib/handlers/reports');
       return await reports.getLeaderboard(req, res);
     }
+    if (pathname === '/api/reports/detailed' && req.method === 'GET') {
+      const reports = require('../lib/handlers/reports');
+      return await reports.getDetailedReport(req, res);
+    }
     if (pathname === '/api/reports/export/csv' && req.method === 'GET') {
       const reports = require('../lib/handlers/reports');
       return await reports.exportReportsCSV(req, res);
@@ -263,6 +267,10 @@ module.exports = async (req, res) => {
     if (pathname === '/api/reports/export/excel' && req.method === 'GET') {
       const reports = require('../lib/handlers/reports');
       return await reports.exportReportsExcel(req, res);
+    }
+    if (pathname === '/api/reports/export/pdf' && req.method === 'GET') {
+      const reports = require('../lib/handlers/reports');
+      return await reports.exportReportsPDF(req, res);
     }
 
     // Debug routes (admin only)

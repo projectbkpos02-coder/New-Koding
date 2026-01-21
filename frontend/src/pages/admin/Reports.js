@@ -81,13 +81,13 @@ export default function Reports() {
       const url = window.URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `Laporan_Penjualan_${new Date().toISOString().split('T')[0]}.xlsx`);
+      link.setAttribute('download', `Laporan_Penjualan_${new Date().toISOString().split('T')[0]}.tsv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (error) {
       console.error('Error downloading Excel:', error);
-      alert('Gagal mengunduh laporan Excel');
+      alert('Gagal mengunduh laporan. Pastikan ada data untuk didownload.');
     }
   };
 
