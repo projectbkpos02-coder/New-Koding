@@ -38,13 +38,32 @@ export default function Reports() {
         reportsAPI.getDetailed(params)
       ]);
       
-      setSummary(summaryRes.data);
-      setLeaderboard(leaderboardRes.data);
-      setTransactions(transactionsRes.data);
-      setRiders(ridersRes.data);
-      setDetailedReport(detailedRes.data);
+      setSummary(summaryRes?.data || {});
+      setLeaderboard(leaderboardRes?.data || []);
+      setTransactions(transactionsRes?.data || []);
+      setRiders(ridersRes?.data || []);
+      
+      // Ensure detailedReport has correct structure
+      const detailedData = detailedRes?.data || {};
+      setDetailedReport({
+        summary: detailedData.summary || {},
+        payment_breakdown: detailedData.payment_breakdown || {},
+        rider_breakdown: Array.isArray(detailedData.rider_breakdown) ? detailedData.rider_breakdown : [],
+        transactions: Array.isArray(detailedData.transactions) ? detailedData.transactions : []
+      });
     } catch (error) {
       console.error('Error fetching data:', error);
+      // Set default values on error
+      setSummary({});
+      setLeaderboard([]);
+      setTransactions([]);
+      setRiders([]);
+      setDetailedReport({
+        summary: {},
+        payment_breakdown: {},
+        rider_breakdown: [],
+        transactions: []
+      });
     } finally {
       setLoading(false);
     }
