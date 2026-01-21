@@ -6,12 +6,13 @@ import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { reportsAPI, transactionsAPI, usersAPI } from '../../lib/api';
 import { formatCurrency, formatDateTime, formatDate } from '../../lib/utils';
-import { BarChart3, Calendar, Download, User, TrendingUp, ShoppingCart, AlertTriangle, Loader2 } from 'lucide-react';
+import { BarChart3, Calendar, Download, User, TrendingUp, ShoppingCart, AlertTriangle, Loader2, FileText, TrendingDown } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/Tabs';
 
 export default function Reports() {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
+  const [detailedReport, setDetailedReport] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [riders, setRiders] = useState([]);
@@ -29,17 +30,19 @@ export default function Reports() {
       if (endDate) params.end_date = endDate;
       if (selectedRider) params.rider_id = selectedRider;
 
-      const [summaryRes, leaderboardRes, transactionsRes, ridersRes] = await Promise.all([
+      const [summaryRes, leaderboardRes, transactionsRes, ridersRes, detailedRes] = await Promise.all([
         reportsAPI.getSummary(params),
         reportsAPI.getLeaderboard(params),
         transactionsAPI.getAll(params),
-        usersAPI.getRiders()
+        usersAPI.getRiders(),
+        reportsAPI.getDetailed(params)
       ]);
       
       setSummary(summaryRes.data);
       setLeaderboard(leaderboardRes.data);
       setTransactions(transactionsRes.data);
       setRiders(ridersRes.data);
+      setDetailedReport(detailedRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -67,27 +70,6 @@ export default function Reports() {
     window.print();
   };
 
-  const handleDownloadCSV = async () => {
-    try {
-      const params = {};
-      if (startDate) params.start_date = startDate;
-      if (endDate) params.end_date = endDate;
-      if (selectedRider) params.rider_id = selectedRider;
-      
-      const response = await reportsAPI.exportCSV(params);
-      const url = window.URL.createObjectURL(response.data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `laporan_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Error downloading CSV:', error);
-      alert('Gagal mengunduh laporan CSV');
-    }
-  };
-
   const handleDownloadExcel = async () => {
     try {
       const params = {};
@@ -99,13 +81,34 @@ export default function Reports() {
       const url = window.URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `laporan_${new Date().toISOString().split('T')[0]}.xlsx`);
+      link.setAttribute('download', `Laporan_Penjualan_${new Date().toISOString().split('T')[0]}.xlsx`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (error) {
       console.error('Error downloading Excel:', error);
       alert('Gagal mengunduh laporan Excel');
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    try {
+      const params = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      if (selectedRider) params.rider_id = selectedRider;
+      
+      const response = await reportsAPI.exportPDF(params);
+      const url = window.URL.createObjectURL(response.data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Laporan_Penjualan_${new Date().toISOString().split('T')[0]}.html`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Gagal mengunduh laporan PDF');
     }
   };
 
@@ -123,6 +126,11 @@ export default function Reports() {
       case 'month':
         start = new Date(today.setMonth(today.getMonth() - 1));
         break;
+      case 'year':
+        start = new Date(today.setFullYear(today.getFullYear() - 1));
+        break;
+      default:
+        break;
     }
     
     setStartDate(start.toISOString().split('T')[0]);
@@ -135,21 +143,21 @@ export default function Reports() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Laporan</h1>
-            <p className="text-gray-500">Laporan penjualan, transaksi, dan performa rider</p>
+            <h1 className="text-2xl font-bold text-gray-900">Laporan Penjualan</h1>
+            <p className="text-gray-500">Ringkasan penjualan, transaksi, dan performa rider dengan analisis laba rugi</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button onClick={handlePrint} variant="outline">
+            <Button onClick={handlePrint} variant="outline" size="sm">
               <Download className="w-4 h-4 mr-2" />
               Cetak
             </Button>
-            <Button onClick={handleDownloadCSV} variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              CSV
-            </Button>
-            <Button onClick={handleDownloadExcel} variant="outline">
+            <Button onClick={handleDownloadExcel} variant="outline" size="sm">
               <Download className="w-4 h-4 mr-2" />
               Excel
+            </Button>
+            <Button onClick={handleDownloadPDF} variant="outline" size="sm">
+              <Download className="w-4 h-4 mr-2" />
+              PDF
             </Button>
           </div>
         </div>
@@ -193,6 +201,7 @@ export default function Reports() {
                 <Button size="sm" variant="outline" onClick={() => setPresetDate('today')}>Hari Ini</Button>
                 <Button size="sm" variant="outline" onClick={() => setPresetDate('week')}>7 Hari</Button>
                 <Button size="sm" variant="outline" onClick={() => setPresetDate('month')}>30 Hari</Button>
+                <Button size="sm" variant="outline" onClick={() => setPresetDate('year')}>1 Tahun</Button>
               </div>
               <Button onClick={handleFilter}>Filter</Button>
               <Button variant="outline" onClick={handleReset}>Reset</Button>
@@ -240,11 +249,11 @@ export default function Reports() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Total Kerugian</p>
-                      <p className="text-2xl font-bold text-red-600">{formatCurrency(summary?.total_loss || 0)}</p>
+                      <p className="text-sm font-medium text-gray-500">Gross Profit</p>
+                      <p className="text-2xl font-bold text-green-600">{formatCurrency(detailedReport?.summary?.gross_profit || 0)}</p>
                     </div>
-                    <div className="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center">
-                      <AlertTriangle className="w-6 h-6 text-white" />
+                    <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                      <BarChart3 className="w-6 h-6 text-white" />
                     </div>
                   </div>
                 </CardContent>
@@ -254,8 +263,8 @@ export default function Reports() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Profit Bersih</p>
-                      <p className="text-2xl font-bold text-purple-600">{formatCurrency(summary?.net_profit || 0)}</p>
+                      <p className="text-sm font-medium text-gray-500">Profit Margin</p>
+                      <p className="text-2xl font-bold text-purple-600">{(detailedReport?.summary?.profit_margin || 0).toFixed(2)}%</p>
                     </div>
                     <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
                       <BarChart3 className="w-6 h-6 text-white" />
@@ -265,85 +274,126 @@ export default function Reports() {
               </Card>
             </div>
 
-            <Tabs defaultValue="leaderboard" className="print:hidden">
-              <TabsList>
-                <TabsTrigger value="leaderboard">Leaderboard Rider</TabsTrigger>
-                <TabsTrigger value="transactions">Riwayat Transaksi</TabsTrigger>
+            <Tabs defaultValue="overview" className="print:hidden">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="overview">Ringkasan</TabsTrigger>
+                <TabsTrigger value="payment">Metode Pembayaran</TabsTrigger>
+                <TabsTrigger value="leaderboard">Performa Rider</TabsTrigger>
+                <TabsTrigger value="transactions">Transaksi Detail</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="leaderboard">
+              {/* Overview Tab */}
+              <TabsContent value="overview">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Leaderboard Rider</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      Ringkasan Penjualan & Laba Rugi
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {leaderboard.length === 0 ? (
-                      <p className="text-center text-gray-500 py-8">Tidak ada data</p>
-                    ) : (
-                      <div className="space-y-3">
-                        {leaderboard.map((rider, index) => (
-                          <div key={rider.rider_id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                              index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                              index === 1 ? 'bg-gray-300 text-gray-700' :
-                              index === 2 ? 'bg-orange-400 text-orange-900' :
-                              'bg-gray-200 text-gray-600'
-                            }`}>
-                              {index + 1}
-                            </div>
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                              {rider.avatar_url ? (
-                                <img src={rider.avatar_url} alt={rider.full_name} className="w-full h-full object-cover rounded-full" />
-                              ) : (
-                                <User className="w-5 h-5 text-blue-600" />
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-medium">{rider.full_name}</h3>
-                              <p className="text-sm text-gray-500">{rider.total_transactions} transaksi</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-green-600">{formatCurrency(rider.total_sales)}</p>
-                            </div>
-                          </div>
-                        ))}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-blue-50 rounded-lg">
+                          <p className="text-sm text-gray-600">Total Penjualan (Revenue)</p>
+                          <p className="text-2xl font-bold text-blue-600">{formatCurrency(detailedReport?.summary?.total_revenue || 0)}</p>
+                        </div>
+                        <div className="p-4 bg-orange-50 rounded-lg">
+                          <p className="text-sm text-gray-600">Total Biaya/HPP</p>
+                          <p className="text-2xl font-bold text-orange-600">{formatCurrency(detailedReport?.summary?.total_cost || 0)}</p>
+                        </div>
+                        <div className="p-4 bg-green-50 rounded-lg">
+                          <p className="text-sm text-gray-600">Gross Profit (Laba Kotor)</p>
+                          <p className="text-2xl font-bold text-green-600">{formatCurrency(detailedReport?.summary?.gross_profit || 0)}</p>
+                        </div>
+                        <div className="p-4 bg-purple-50 rounded-lg">
+                          <p className="text-sm text-gray-600">Profit Margin</p>
+                          <p className="text-2xl font-bold text-purple-600">{(detailedReport?.summary?.profit_margin || 0).toFixed(2)}%</p>
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="transactions">
+              {/* Payment Methods Tab */}
+              <TabsContent value="payment">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Riwayat Transaksi</CardTitle>
+                    <CardTitle>Ringkasan Metode Pembayaran</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {transactions.length === 0 ? (
-                      <p className="text-center text-gray-500 py-8">Tidak ada transaksi</p>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                          <p className="text-sm text-blue-600 font-medium">💳 QRIS</p>
+                          <p className="text-3xl font-bold text-blue-700 mt-2">{formatCurrency(detailedReport?.payment_breakdown?.qris || 0)}</p>
+                          <p className="text-sm text-blue-600 mt-1">
+                            {detailedReport?.summary?.total_sales > 0 
+                              ? ((detailedReport?.payment_breakdown?.qris / detailedReport?.summary?.total_sales) * 100).toFixed(1)
+                              : 0}% dari total
+                          </p>
+                        </div>
+                        <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200">
+                          <p className="text-sm text-green-600 font-medium">💵 Tunai</p>
+                          <p className="text-3xl font-bold text-green-700 mt-2">{formatCurrency(detailedReport?.payment_breakdown?.tunai || 0)}</p>
+                          <p className="text-sm text-green-600 mt-1">
+                            {detailedReport?.summary?.total_sales > 0 
+                              ? ((detailedReport?.payment_breakdown?.tunai / detailedReport?.summary?.total_sales) * 100).toFixed(1)
+                              : 0}% dari total
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
+                        <p className="text-sm text-gray-600 font-medium">📊 Total Penjualan</p>
+                        <p className="text-3xl font-bold text-gray-900 mt-2">{formatCurrency(detailedReport?.payment_breakdown?.total || 0)}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Leaderboard Tab */}
+              <TabsContent value="leaderboard">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5" />
+                      Performa Per Rider
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(detailedReport?.rider_breakdown || []).length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">Tidak ada data rider</p>
+                      </div>
                     ) : (
                       <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b">
-                              <th className="text-left py-3 px-4 font-medium text-gray-500">Tanggal</th>
-                              <th className="text-left py-3 px-4 font-medium text-gray-500">Rider</th>
-                              <th className="text-left py-3 px-4 font-medium text-gray-500">Metode</th>
-                              <th className="text-right py-3 px-4 font-medium text-gray-500">Total</th>
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 border-b">
+                            <tr>
+                              <th className="px-4 py-3 text-left font-medium text-gray-700">Rider</th>
+                              <th className="px-4 py-3 text-right font-medium text-gray-700">Transaksi</th>
+                              <th className="px-4 py-3 text-right font-medium text-gray-700">QRIS</th>
+                              <th className="px-4 py-3 text-right font-medium text-gray-700">Tunai</th>
+                              <th className="px-4 py-3 text-right font-medium text-gray-700">Total</th>
+                              <th className="px-4 py-3 text-right font-medium text-gray-700">Profit</th>
+                              <th className="px-4 py-3 text-right font-medium text-gray-700">Margin</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {transactions.slice(0, 50).map((trans) => (
-                              <tr key={trans.id} className="border-b hover:bg-gray-50">
-                                <td className="py-3 px-4 text-sm">{formatDateTime(trans.created_at)}</td>
-                                <td className="py-3 px-4 text-sm">{trans.profiles?.full_name || '-'}</td>
-                                <td className="py-3 px-4">
-                                  <Badge variant="secondary" className="capitalize">
-                                    {trans.payment_method}
-                                  </Badge>
+                            {(detailedReport?.rider_breakdown || []).map((rider, idx) => (
+                              <tr key={idx} className="border-b hover:bg-gray-50">
+                                <td className="px-4 py-3 font-medium">{rider.rider_name}</td>
+                                <td className="px-4 py-3 text-right">{rider.transactions_count}</td>
+                                <td className="px-4 py-3 text-right">{formatCurrency(rider.qris || 0)}</td>
+                                <td className="px-4 py-3 text-right">{formatCurrency(rider.tunai || 0)}</td>
+                                <td className="px-4 py-3 text-right font-semibold">{formatCurrency(rider.total_sales || 0)}</td>
+                                <td className="px-4 py-3 text-right text-green-600 font-semibold">
+                                  {formatCurrency((rider.revenue - rider.cost) || 0)}
                                 </td>
-                                <td className="py-3 px-4 text-right font-medium text-green-600">
-                                  {formatCurrency(trans.total_amount)}
+                                <td className="px-4 py-3 text-right font-semibold">
+                                  {rider.revenue > 0 ? (((rider.revenue - rider.cost) / rider.revenue) * 100).toFixed(2) : 0}%
                                 </td>
                               </tr>
                             ))}
@@ -354,38 +404,54 @@ export default function Reports() {
                   </CardContent>
                 </Card>
               </TabsContent>
-            </Tabs>
 
-            {/* Print Version - Leaderboard */}
-            <div className="hidden print:block">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Leaderboard Rider</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-2">Rank</th>
-                        <th className="text-left py-2">Rider</th>
-                        <th className="text-right py-2">Transaksi</th>
-                        <th className="text-right py-2">Total Penjualan</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {leaderboard.map((rider, index) => (
-                        <tr key={rider.rider_id} className="border-b">
-                          <td className="py-2">{index + 1}</td>
-                          <td className="py-2">{rider.full_name}</td>
-                          <td className="py-2 text-right">{rider.total_transactions}</td>
-                          <td className="py-2 text-right">{formatCurrency(rider.total_sales)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </CardContent>
-              </Card>
-            </div>
+              {/* Transactions Tab */}
+              <TabsContent value="transactions">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ShoppingCart className="w-5 h-5" />
+                      Detail Transaksi
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {(transactions || []).length === 0 ? (
+                      <div className="text-center py-12">
+                        <ShoppingCart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <p className="text-gray-500">Tidak ada transaksi ditemukan</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-gray-50 border-b">
+                            <tr>
+                              <th className="px-4 py-3 text-left font-medium text-gray-700">Tanggal</th>
+                              <th className="px-4 py-3 text-left font-medium text-gray-700">Rider</th>
+                              <th className="px-4 py-3 text-left font-medium text-gray-700">Metode</th>
+                              <th className="px-4 py-3 text-right font-medium text-gray-700">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {transactions.map((t) => (
+                              <tr key={t.id} className="border-b hover:bg-gray-50">
+                                <td className="px-4 py-3">{new Date(t.created_at).toLocaleString('id-ID')}</td>
+                                <td className="px-4 py-3">{t.profiles?.full_name || '-'}</td>
+                                <td className="px-4 py-3">
+                                  <Badge variant={t.payment_method === 'qris' ? 'secondary' : 'default'}>
+                                    {t.payment_method === 'qris' ? 'QRIS' : 'Tunai'}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-3 text-right font-semibold">{formatCurrency(t.total_amount || 0)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </>
         )}
       </div>

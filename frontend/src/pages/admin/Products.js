@@ -27,6 +27,7 @@ export default function Products() {
     name: '',
     sku: '',
     price: '',
+    hpp: '',
     category_id: '',
     min_stock: 10,
     image_url: ''
@@ -60,6 +61,7 @@ export default function Products() {
         name: product.name,
         sku: product.sku || '',
         price: product.price.toString(),
+        hpp: product.hpp ? product.hpp.toString() : '',
         category_id: product.category_id || '',
         min_stock: product.min_stock || 10,
         image_url: product.image_url || ''
@@ -70,6 +72,7 @@ export default function Products() {
         name: '',
         sku: '',
         price: '',
+        hpp: '',
         category_id: '',
         min_stock: 10,
         image_url: ''
@@ -87,6 +90,7 @@ export default function Products() {
         name: form.name,
         sku: form.sku || null,
         price: parseFloat(form.price),
+        hpp: form.hpp ? parseFloat(form.hpp) : 0,
         category_id: form.category_id || null,
         min_stock: parseInt(form.min_stock),
         image_url: form.image_url || null
@@ -280,8 +284,25 @@ export default function Products() {
                     type="number"
                     value={form.price}
                     onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    placeholder="Harga"
+                    placeholder="Harga jual"
                   />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">HPP/Modal</label>
+                  <Input
+                    type="number"
+                    value={form.hpp}
+                    onChange={(e) => setForm({ ...form, hpp: e.target.value })}
+                    placeholder="Harga Pokok Penjualan"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Margin</label>
+                  <div className="h-10 px-3 rounded-lg border border-gray-300 flex items-center bg-gray-50 text-sm">
+                    {form.price && form.hpp ? `${(((parseFloat(form.price) - parseFloat(form.hpp || 0)) / parseFloat(form.price)) * 100).toFixed(1)}%` : '-'}
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
