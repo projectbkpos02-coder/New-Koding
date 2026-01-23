@@ -1,7 +1,8 @@
 {
   "buildCommand": "bash vercel-build.sh",
   "env": {
-    "REACT_APP_BACKEND_URL": "/api"
+    "REACT_APP_BACKEND_URL": "/api",
+    "CACHE_BUST": "2026-01-23-02-46-00"
   },
   "routes": [
     { "handle": "filesystem" },
