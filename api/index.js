@@ -213,13 +213,14 @@ module.exports = async (req, res) => {
     if (pathname === '/api/gps' && req.method === 'POST') {
       return await gps.updateGPS(req, res);
     }
+    // IMPORTANT: Check /api/gps/all BEFORE the wildcard /api/gps/:rider_id pattern
+    if (pathname === '/api/gps/all' && req.method === 'GET') {
+      return await gps.getAllRidersGPS(req, res);
+    }
     if (pathname.match(/^\/api\/gps\/[^/]+$/) && req.method === 'GET') {
       const rider_id = pathname.split('/').pop();
       req.params = { rider_id };
       return await gps.getRiderGPS(req, res);
-    }
-    if (pathname === '/api/gps/all' && req.method === 'GET') {
-      return await gps.getAllRidersGPS(req, res);
     }
 
     // Users/Riders routes
